@@ -4,6 +4,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
+import android.content.Context;
+
+import com.afunx.ble.blelitelib.log.BleLiteLog;
 
 /**
  * Created by afunx on 08/11/2016.
@@ -11,40 +14,97 @@ import android.bluetooth.BluetoothGattCallback;
 
 public class BleConnector {
 
+    private static final String TAG = "BleConnector";
+
+    private final Context mAppContext;
     private final BluetoothDevice mBluetoothDevice;
+    private final BluetoothGattCallback mBluetoothGattCallback;
     private BluetoothGatt mBluetoothGatt;
-    private BluetoothGattCallback mBluetoothGattCallback;
+    private volatile boolean mIsClosed;
 
-    private BleConnector(BluetoothDevice bluetoothDevice) {
-        this(bluetoothDevice,null);
-    }
-
-    private BleConnector(BluetoothDevice bluetoothDevice, BluetoothGatt bluetoothGatt) {
+    private BleConnector(Context appContext, BluetoothDevice bluetoothDevice, BluetoothGatt bluetoothGatt, BluetoothGattCallback bluetoothGattCallback) {
+        // get application context to avoid memory leak
+        mAppContext = appContext.getApplicationContext();
         mBluetoothDevice = bluetoothDevice;
         mBluetoothGatt = bluetoothGatt;
+        mBluetoothGattCallback = bluetoothGattCallback;
     }
 
-    private static BluetoothAdapter getAdapter() {
-        return BluetoothAdapter.getDefaultAdapter();
+    /**
+     * connect to the specific bluetooth device
+     */
+    public synchronized void connect() {
+        if (mIsClosed) {
+            BleLiteLog.w(TAG, "connect() has been closed already, do nothing");
+            return;
+        }
+        if (mBluetoothGatt == null) {
+            BleLiteLog.i(TAG, "connect() connect...");
+            BleConnectCompat connectCompat = new BleConnectCompat(mAppContext);
+            BluetoothGatt bluetoothGatt = connectCompat.connectGatt(mBluetoothDevice, false, mBluetoothGattCallback);
+            mBluetoothGatt = bluetoothGatt;
+        } else {
+            BleLiteLog.i(TAG, "connect() reconnect...");
+            mBluetoothGatt.connect();
+        }
+    }
+
+    /**
+     * close bluetooth gatt
+     */
+    public synchronized void close() {
+        if (!mIsClosed) {
+            mIsClosed = true;
+            if (mBluetoothGatt != null) {
+                BleLiteLog.i(TAG, "close()");
+                mBluetoothGatt.close();
+            }
+        }
     }
 
     /**
      * Getter and Setter
      */
-    public BleConnector setBluetoothGattCallback(BluetoothGattCallback bluetoothGattCallback) {
-        mBluetoothGattCallback = bluetoothGattCallback;
-        return this;
+    public synchronized BluetoothGatt getBluetoothGatt() {
+        if (mIsClosed) {
+            BleLiteLog.w(TAG, "getBluetoothGatt() has been closed already, return null");
+            return null;
+        } else {
+            return mBluetoothGatt;
+        }
     }
 
     /**
      * Builder
      */
     public final static class Builder {
-        public BleConnector build(BluetoothDevice bluetoothDevice) {
-            return new BleConnector(bluetoothDevice);
+
+        private Context mContext;
+        private BluetoothDevice mBluetoothDevice;
+        private BluetoothGatt mBluetoothGatt;
+        private BluetoothGattCallback mBluetoothGattCallback;
+
+        public Builder build(Context context, BluetoothDevice bluetoothDevice) {
+            mContext = context;
+            mBluetoothDevice = bluetoothDevice;
+            return this;
         }
-        public BleConnector build(BluetoothDevice bluetoothDevice, BluetoothGatt bluetoothGatt) {
-            return new BleConnector(bluetoothDevice,bluetoothGatt);
+
+        public Builder build(Context context, BluetoothDevice bluetoothDevice, BluetoothGatt bluetoothGatt) {
+            mContext = context;
+            mBluetoothDevice = bluetoothDevice;
+            mBluetoothGatt = bluetoothGatt;
+            return this;
         }
+
+        public Builder setGattCallback(BluetoothGattCallback bluetoothGattCallback) {
+            mBluetoothGattCallback = bluetoothGattCallback;
+            return this;
+        }
+
+        public BleConnector create() {
+            return new BleConnector(mContext, mBluetoothDevice, mBluetoothGatt, mBluetoothGattCallback);
+        }
+
     }
 }
