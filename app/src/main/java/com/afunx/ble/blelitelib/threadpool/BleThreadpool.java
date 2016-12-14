@@ -8,13 +8,12 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Created by afunx on 12/12/2016.
  */
 public class BleThreadpool {
-    
+
     private Handler mMainHandler;
     private ExecutorService mExecutor;
 

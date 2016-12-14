@@ -6,6 +6,7 @@ package com.afunx.ble.blelitelib.utils;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 
 public class BleUtils {
@@ -57,5 +58,20 @@ public class BleUtils {
     public static void tryEnableBluetooth(Activity activity, int requestCode) {
         Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         activity.startActivityForResult(intent, requestCode);
+    }
+
+    /**
+     * Get a {@link BluetoothDevice} object for the given Bluetooth hardware
+     * address.
+     * <p>Valid Bluetooth hardware addresses must be upper case, in a format
+     * such as "00:11:22:33:AA:BB".
+     * <p>A {@link BluetoothDevice} will always be returned for a valid
+     * hardware address, even if this adapter has never seen that device.
+     *
+     * @param bleAddr valid Bluetooth MAC address
+     * @throws IllegalArgumentException if address is invalid
+     */
+    public static BluetoothDevice getRemoteDevice(String bleAddr) {
+        return BluetoothAdapter.getDefaultAdapter().getRemoteDevice(bleAddr);
     }
 }
