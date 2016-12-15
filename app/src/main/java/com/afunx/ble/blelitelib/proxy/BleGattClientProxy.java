@@ -7,15 +7,6 @@ import com.afunx.ble.blelitelib.operation.BleOperation;
  */
 
 public interface BleGattClientProxy {
-//    private Context mAppContext;
-//    private BluetoothDevice mTarget;
-
-//    private BleConnector mConnector;
-
-
-//    void register(BleOperation operation);
-//
-//    void unregister(BleOperation operation);
 
     /**
      * try to connect to ble device

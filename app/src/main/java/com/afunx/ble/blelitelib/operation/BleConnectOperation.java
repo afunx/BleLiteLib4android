@@ -34,9 +34,13 @@ public class BleConnectOperation extends BleOperationAbs {
     public void run() {
         BluetoothDevice bluetoothDevice = BleUtils.getRemoteDevice(mBleAddr);
 //        bluetoothDevice.fetchUuidsWithSdp();
-        BleConnector connector = new BleConnector.Builder().build(mAppContext, bluetoothDevice)
-                .setGattCallback(mBluetoothGattCallback).create();
-        setConnector(connector);
+        BleConnector connector = getConnector();
+        if (connector == null) {
+            connector = new BleConnector.Builder().build(mAppContext, bluetoothDevice)
+                    .setGattCallback(mBluetoothGattCallback).create();
+            setConnector(connector);
+        }
+
         connector.connect();
     }
 

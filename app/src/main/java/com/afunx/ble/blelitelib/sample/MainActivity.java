@@ -14,12 +14,16 @@ import com.afunx.ble.blelitelib.proxy.BleGattClientProxyImpl;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    private volatile BleGattClientProxy mProxy;
+    private volatile boolean mIsStop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mIsStop = false;
+        mProxy = new BleGattClientProxyImpl(this);
         Button tapBtn = (Button) findViewById(R.id.btn_tap_me);
         tapBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -29,21 +33,27 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onDestroy() {
+        mIsStop = true;
+        super.onDestroy();
+    }
+
     private void tapMe() {
         Log.i(TAG,"tapMe()");
         final String bleAddr = "24:0A:C4:00:02:BC";
         final Context context = MainActivity.this;
+        final BleGattClientProxy proxy = mProxy;
         new Thread(){
             @Override
             public void run() {
-                BleGattClientProxy proxy = new BleGattClientProxyImpl(context);
                 int count = 0;
-                while(true) {
+                while(!mIsStop) {
                     Log.e(TAG,"connect and close count: " + (++count));
                     proxy.connect(bleAddr, 20000);
                     proxy.close();
                     try {
-                        Thread.sleep(100);
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
