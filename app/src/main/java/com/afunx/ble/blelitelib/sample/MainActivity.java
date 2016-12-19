@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
                     if (gattService != null) {
                         proxy.discoverCharacteristic(gattService, UUID_CONFIGURE_CHARACTERISTIC);
                     }
+                    proxy.requestMtu(64,2000);
                     proxy.close();
                     try {
                         Thread.sleep(1000);

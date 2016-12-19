@@ -1,8 +1,9 @@
 package com.afunx.ble.blelitelib.proxy;
 
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
-import android.support.annotation.BoolRes;
+import android.os.Build;
 import android.support.annotation.NonNull;
 
 import com.afunx.ble.blelitelib.operation.BleOperation;
@@ -41,6 +42,16 @@ public interface BleGattClientProxy {
      * @return bluetooth gatt characteristic
      */
     BluetoothGattCharacteristic discoverCharacteristic(@NonNull BluetoothGattService gattService, @NonNull UUID uuid);
+
+    /**
+     * request mtu
+     *
+     * @param mtu the mtu
+     * @param timeout timeout in milliseconds
+     * @return whether request mtu is suc
+     */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    boolean requestMtu(int mtu, long timeout);
 
     /**
      * close and release resources

@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.LongSparseArray;
@@ -16,6 +17,7 @@ import com.afunx.ble.blelitelib.operation.BleCloseOperation;
 import com.afunx.ble.blelitelib.operation.BleConnectOperation;
 import com.afunx.ble.blelitelib.operation.BleDiscoverServiceOperation;
 import com.afunx.ble.blelitelib.operation.BleOperation;
+import com.afunx.ble.blelitelib.operation.BleRequestMtuOperation;
 import com.afunx.ble.blelitelib.proxy.scheme.BleGattReconnectScheme;
 import com.afunx.ble.blelitelib.proxy.scheme.BleGattReconnectSchemeDefaultImpl;
 import com.afunx.ble.blelitelib.threadpool.BleThreadpool;
@@ -71,6 +73,11 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     private BleDiscoverServiceOperation getDiscoverServiceOperation() {
         final BleOperation operation = mOperations.get(BleOperation.BLE_DISCOVER_SERVICE);
         return operation != null ? (BleDiscoverServiceOperation) operation : null;
+    }
+
+    private BleRequestMtuOperation getRequestMtuOperation() {
+        final BleOperation operation = mOperations.get(BleOperation.BLE_REQUEST_MTU);
+        return operation != null ? (BleRequestMtuOperation) operation : null;
     }
 
     private BluetoothGatt getBluetoothGatt() {
@@ -131,13 +138,21 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            BleLiteLog.i(TAG, "onConnectionStateChange() status: " + BleGattStatusParser.parse(status));
+            BleLiteLog.i(TAG, "onServicesDiscovered() status: " + BleGattStatusParser.parse(status));
             final BleDiscoverServiceOperation discoverServiceOperation = getDiscoverServiceOperation();
             if (status == BluetoothGatt.GATT_SUCCESS && discoverServiceOperation != null) {
                 discoverServiceOperation.notifyLock();
             }
         }
 
+        @Override
+        public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
+            BleLiteLog.i(TAG, "onMtuChanged() mtu: " + mtu + ", status: " + BleGattStatusParser.parse(status));
+            final BleRequestMtuOperation requestMtuOperation = getRequestMtuOperation();
+            if (status == BluetoothGatt.GATT_SUCCESS && requestMtuOperation != null) {
+                requestMtuOperation.notifyLock();
+            }
+        }
     };
 
     private void setBleConnector(BleConnector connector) {
@@ -160,6 +175,11 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     @Override
     public BluetoothGattCharacteristic discoverCharacteristic(@NonNull BluetoothGattService gattService, @NonNull UUID uuid) {
         return __discoverCharacteristic(gattService, uuid);
+    }
+
+    @Override
+    public boolean requestMtu(int mtu, long timeout) {
+        return __requestMtu(mtu, timeout);
     }
 
     @Override
@@ -239,12 +259,38 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         return gattCharacteristic;
     }
 
+    private boolean __requestMtu(final int mtu, final long timeout) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            BleLiteLog.w(TAG, "__requestMtu() fail for android version is to low(lower than 5.0 LOLLIPOP)");
+            return false;
+        }
+        final BluetoothGatt bluetoothGatt = getBluetoothGatt();
+        if (bluetoothGatt == null) {
+            BleLiteLog.w(TAG, "__requestMtu() fail for bluetoothGatt is null");
+            return false;
+        }
+        // create operation
+        final BleRequestMtuOperation requestMtuOperation = BleRequestMtuOperation.createInstance(bluetoothGatt, mtu);
+        // register
+        register(requestMtuOperation);
+        long startTimestamp = System.currentTimeMillis();
+        // execute operation
+        requestMtuOperation.doRunnableSelfAsync(false);
+        requestMtuOperation.waitLock(timeout);
+        boolean isRequestMtuSuc = requestMtuOperation.isNotified();
+        long consume = System.currentTimeMillis() - startTimestamp;
+        BleLiteLog.i(TAG, "__requestMtu() mtu: " + mtu + " suc: " + isRequestMtuSuc + ", consume: " + consume + " ms");
+        return isRequestMtuSuc;
+    }
+
     private void __close() {
         if (!mIsClosed) {
             mIsClosed = true;
             BleLiteLog.i(TAG, "__close() closing");
             // unregister
             unregister(BleOperation.BLE_CONNECT);
+            unregister(BleOperation.BLE_DISCOVER_SERVICE);
+            unregister(BleOperation.BLE_REQUEST_MTU);
             // create operation
             final BluetoothGatt bluetoothGatt = getBluetoothGatt();
             if (bluetoothGatt == null) {
