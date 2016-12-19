@@ -1,5 +1,6 @@
 package com.afunx.ble.blelitelib.sample;
 
+import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -42,20 +43,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void tapMe() {
-        Log.i(TAG,"tapMe()");
+        Log.i(TAG, "tapMe()");
         final String bleAddr = "24:0A:C4:00:02:BC";
         final UUID UUID_WIFI_SERVICE = UUID
-                .fromString("0000ffff-0000-1000-8000-00805f9b34fc");
+                .fromString("0000ffff-0000-1000-8000-00805f9b34fb");
+        final UUID UUID_CONFIGURE_CHARACTERISTIC = UUID
+                .fromString("0000ff01-0000-1000-8000-00805f9b34fb");
         final Context context = MainActivity.this;
         final BleGattClientProxy proxy = mProxy;
-        new Thread(){
+        new Thread() {
             @Override
             public void run() {
                 int count = 0;
-                while(!mIsStop) {
-                    Log.e(TAG,"connect and close count: " + (++count));
+                while (!mIsStop) {
+                    Log.e(TAG, "connect and close count: " + (++count));
                     proxy.connect(bleAddr, 20000);
-                    proxy.discoverService(UUID_WIFI_SERVICE, 5000);
+                    BluetoothGattService gattService = proxy.discoverService(UUID_WIFI_SERVICE, 5000);
+                    if (gattService != null) {
+                        proxy.discoverCharacteristic(gattService, UUID_CONFIGURE_CHARACTERISTIC);
+                    }
                     proxy.close();
                     try {
                         Thread.sleep(1000);

@@ -2,9 +2,11 @@ package com.afunx.ble.blelitelib.proxy;
 
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.LongSparseArray;
 
@@ -151,8 +153,13 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     }
 
     @Override
-    public BluetoothGattService discoverService(UUID uuid, long timeout) {
+    public BluetoothGattService discoverService(@NonNull UUID uuid, long timeout) {
         return __discoverService(uuid, timeout);
+    }
+
+    @Override
+    public BluetoothGattCharacteristic discoverCharacteristic(@NonNull BluetoothGattService gattService, @NonNull UUID uuid) {
+        return __discoverCharacteristic(gattService, uuid);
     }
 
     @Override
@@ -213,7 +220,7 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         return isServiceDiscoverSuc;
     }
 
-    private BluetoothGattService __discoverService(UUID uuid, long timeout) {
+    private BluetoothGattService __discoverService(@NonNull UUID uuid, long timeout) {
         final BluetoothGatt bluetoothGatt = getBluetoothGatt();
         boolean isServiceDiscoverSuc = __discoverService(bluetoothGatt, timeout);
         if (isServiceDiscoverSuc) {
@@ -223,6 +230,13 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         } else {
             return null;
         }
+    }
+
+    private BluetoothGattCharacteristic __discoverCharacteristic(BluetoothGattService gattService, UUID uuid) {
+        final BluetoothGattCharacteristic gattCharacteristic = gattService.getCharacteristic(uuid);
+        BleLiteLog.i(TAG, "__discoverCharacteristic() gattService uuid: " + gattService.getUuid() + ", characteristic uuid: " + uuid
+                + ", gattCharacteristic is " + (gattCharacteristic != null ? "found" : "missed"));
+        return gattCharacteristic;
     }
 
     private void __close() {
