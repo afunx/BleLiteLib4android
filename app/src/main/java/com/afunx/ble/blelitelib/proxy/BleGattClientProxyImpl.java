@@ -2,20 +2,25 @@ package com.afunx.ble.blelitelib.proxy;
 
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.util.Log;
 import android.util.LongSparseArray;
 
 import com.afunx.ble.blelitelib.connector.BleConnector;
 import com.afunx.ble.blelitelib.log.BleLiteLog;
 import com.afunx.ble.blelitelib.operation.BleCloseOperation;
 import com.afunx.ble.blelitelib.operation.BleConnectOperation;
+import com.afunx.ble.blelitelib.operation.BleDiscoverServiceOperation;
 import com.afunx.ble.blelitelib.operation.BleOperation;
 import com.afunx.ble.blelitelib.proxy.scheme.BleGattReconnectScheme;
 import com.afunx.ble.blelitelib.proxy.scheme.BleGattReconnectSchemeDefaultImpl;
 import com.afunx.ble.blelitelib.threadpool.BleThreadpool;
 import com.afunx.ble.blelitelib.utils.BleGattStateParser;
 import com.afunx.ble.blelitelib.utils.BleGattStatusParser;
+
+import java.util.UUID;
 
 /**
  * Created by afunx on 13/12/2016.
@@ -59,6 +64,11 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     private BleConnectOperation getConnectOperation() {
         final BleOperation operation = mOperations.get(BleOperation.BLE_CONNECT);
         return operation != null ? (BleConnectOperation) operation : null;
+    }
+
+    private BleDiscoverServiceOperation getDiscoverServiceOperation() {
+        final BleOperation operation = mOperations.get(BleOperation.BLE_DISCOVER_SERVICE);
+        return operation != null ? (BleDiscoverServiceOperation) operation : null;
     }
 
     private BluetoothGatt getBluetoothGatt() {
@@ -116,6 +126,16 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
             }
 
         }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            BleLiteLog.i(TAG, "onConnectionStateChange() status: " + BleGattStatusParser.parse(status));
+            final BleDiscoverServiceOperation discoverServiceOperation = getDiscoverServiceOperation();
+            if (status == BluetoothGatt.GATT_SUCCESS && discoverServiceOperation != null) {
+                discoverServiceOperation.notifyLock();
+            }
+        }
+
     };
 
     private void setBleConnector(BleConnector connector) {
@@ -128,6 +148,11 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
             boolean isConnectSuc = __connect(bleAddr, timeout);
             return isConnectSuc;
         }
+    }
+
+    @Override
+    public BluetoothGattService discoverService(UUID uuid, long timeout) {
+        return __discoverService(uuid, timeout);
     }
 
     @Override
@@ -167,6 +192,37 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
             close();
         }
         return isConnectSuc;
+    }
+
+    private boolean __discoverService(final BluetoothGatt bluetoothGatt, final long timeout) {
+        if (bluetoothGatt == null) {
+            BleLiteLog.w(TAG, "__discoverService() fail for bluetoothGatt is null");
+            return false;
+        }
+        // create operation
+        final BleDiscoverServiceOperation discoverServiceOperation = BleDiscoverServiceOperation.createInstance(bluetoothGatt);
+        // register
+        register(discoverServiceOperation);
+        long startTimestamp = System.currentTimeMillis();
+        // execute operation
+        discoverServiceOperation.doRunnableSelfAsync(true);
+        discoverServiceOperation.waitLock(timeout);
+        long consume = System.currentTimeMillis() - startTimestamp;
+        boolean isServiceDiscoverSuc = discoverServiceOperation.isNotified();
+        BleLiteLog.i(TAG, "__discoverService() discover services suc: " + isServiceDiscoverSuc + ", consume: " + consume + " ms");
+        return isServiceDiscoverSuc;
+    }
+
+    private BluetoothGattService __discoverService(UUID uuid, long timeout) {
+        final BluetoothGatt bluetoothGatt = getBluetoothGatt();
+        boolean isServiceDiscoverSuc = __discoverService(bluetoothGatt, timeout);
+        if (isServiceDiscoverSuc) {
+            final BluetoothGattService gattService = bluetoothGatt.getService(uuid);
+            BleLiteLog.i(TAG, "__discoverService() uuid: " + uuid + ", gattService is " + (gattService != null ? "found" : "missed"));
+            return gattService;
+        } else {
+            return null;
+        }
     }
 
     private void __close() {
