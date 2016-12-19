@@ -6,8 +6,6 @@ import android.bluetooth.BluetoothGattService;
 import android.os.Build;
 import android.support.annotation.NonNull;
 
-import com.afunx.ble.blelitelib.operation.BleOperation;
-
 import java.util.UUID;
 
 /**
@@ -15,6 +13,19 @@ import java.util.UUID;
  */
 
 public interface BleGattClientProxy {
+
+    /**
+     * Listener for characteristic notification
+     */
+    interface OnCharacteristicNotificationListener {
+        /**
+         * callback when characteristic notification arrived
+         * (the callback will work on non main thread usually)
+         *
+         * @param msg msg received
+         */
+        void onCharacteristicNotification(final byte[] msg);
+    }
 
     /**
      * try to connect to ble device
@@ -71,6 +82,22 @@ public interface BleGattClientProxy {
      * @return whether write characteristic is suc
      */
     boolean writeCharacteristic(@NonNull BluetoothGattCharacteristic gattCharacteristic, @NonNull byte[] msg, long timeout);
+
+    /**
+     * register characteristic notification listener
+     *
+     * @param characteristic the characteristic
+     * @param listener       the listener
+     * @return whether register suc
+     */
+    boolean registerCharacteristicNotification(@NonNull BluetoothGattCharacteristic characteristic, OnCharacteristicNotificationListener listener);
+
+    /**
+     * unregister characteristic notification listener
+     *
+     * @param uuid the characteristic's uuid to be unregistered
+     */
+    void unregisterCharacteristicNotification(@NonNull UUID uuid);
 
     /**
      * close and release resources

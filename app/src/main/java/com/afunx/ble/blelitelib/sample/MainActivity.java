@@ -65,10 +65,27 @@ public class MainActivity extends AppCompatActivity {
                     if (gattService != null) {
                         BluetoothGattCharacteristic characteristic = proxy.discoverCharacteristic(gattService, UUID_CONFIGURE_CHARACTERISTIC);
                         if(characteristic!=null) {
-                            byte[] msg = "ssid:wifi-11".getBytes();
-                            proxy.writeCharacteristic(characteristic, msg, 5000);
+                            proxy.writeCharacteristic(characteristic, "ssid:wifi-11".getBytes(), 5000);
                             byte[] msgRead = proxy.readCharacteristic(characteristic, 5000);
                             System.out.println("BH msgRead: " + Arrays.toString(msgRead));
+
+                            BleGattClientProxy.OnCharacteristicNotificationListener listener = new BleGattClientProxy.OnCharacteristicNotificationListener() {
+                                @Override
+                                public void onCharacteristicNotification(byte[] msg) {
+                                    System.out.println("BH ********************onCharacteristicNotification() msg: " + Arrays.toString(msg));
+                                }
+                            };
+                            proxy.registerCharacteristicNotification(characteristic, listener);
+                            proxy.writeCharacteristic(characteristic,"passwd:sumof1+1=2".getBytes(),5000);
+                            proxy.writeCharacteristic(characteristic,"confirm:".getBytes(),5000);
+                            proxy.unregisterCharacteristicNotification(characteristic.getUuid());
+                            System.out.println("BH ********************Sleep 20 seconds********************");
+                            try {
+                                Thread.sleep(20*1000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            mIsStop = true;
                         }
                     }
                     proxy.close();

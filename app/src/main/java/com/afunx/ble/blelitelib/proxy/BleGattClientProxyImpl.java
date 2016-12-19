@@ -8,7 +8,6 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.util.LongSparseArray;
 
 import com.afunx.ble.blelitelib.connector.BleConnector;
@@ -25,6 +24,7 @@ import com.afunx.ble.blelitelib.proxy.scheme.BleGattReconnectSchemeDefaultImpl;
 import com.afunx.ble.blelitelib.threadpool.BleThreadpool;
 import com.afunx.ble.blelitelib.utils.BleGattStateParser;
 import com.afunx.ble.blelitelib.utils.BleGattStatusParser;
+import com.afunx.ble.blelitelib.utils.BleUuidUtils;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -40,6 +40,7 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     private volatile BleConnector mBleConnector;
     private volatile boolean mIsClosed = false;
     private final LongSparseArray<BleOperation> mOperations = new LongSparseArray<>();
+    private final LongSparseArray<OnCharacteristicNotificationListener> mListeners = new LongSparseArray<>();
     private final BleGattReconnectScheme mReconnectScheme = new BleGattReconnectSchemeDefaultImpl();
     private final Context mAppContext;
 
@@ -62,6 +63,27 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     private void unregister(long operationCode) {
         BleLiteLog.d(TAG, "unregister() operationCode: " + operationCode);
         mOperations.remove(operationCode);
+    }
+
+    /**
+     * listener
+     */
+
+    private OnCharacteristicNotificationListener getListener(UUID uuid) {
+        long key = BleUuidUtils.uuid2int(uuid);
+        return mListeners.get(key);
+    }
+
+    private void registerListener(UUID uuid, OnCharacteristicNotificationListener listener) {
+        long key = BleUuidUtils.uuid2int(uuid);
+        BleLiteLog.d(TAG,"registerListener() uuid: " + uuid + ", key: " + key);
+        mListeners.put(key, listener);
+    }
+
+    private void unregisterListener(UUID uuid) {
+        long key = BleUuidUtils.uuid2int(uuid);
+        BleLiteLog.d(TAG,"unregisterListener() uuid: " + uuid + ", key: " + key);
+        mListeners.remove(key);
     }
 
     /**
@@ -186,6 +208,17 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
                 writeCharacteristicOperation.notifyLock();
             }
         }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            final UUID uuid = characteristic.getUuid();
+            BleLiteLog.i(TAG, "onCharacteristicChanged() characteristic uuid: " + uuid);
+            final OnCharacteristicNotificationListener listener = getListener(uuid);
+            if (listener != null) {
+                final byte[] msg = characteristic.getValue();
+                listener.onCharacteristicNotification(msg);
+            }
+        }
     };
 
     private void setBleConnector(BleConnector connector) {
@@ -223,6 +256,16 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     @Override
     public boolean writeCharacteristic(@NonNull BluetoothGattCharacteristic gattCharacteristic, @NonNull byte[] msg, long timeout) {
         return __writeCharacteristic(gattCharacteristic, msg, timeout);
+    }
+
+    @Override
+    public boolean registerCharacteristicNotification(@NonNull BluetoothGattCharacteristic characteristic, OnCharacteristicNotificationListener listener) {
+        return __registerCharacteristicNotification(characteristic, listener);
+    }
+
+    @Override
+    public void unregisterCharacteristicNotification(@NonNull UUID uuid) {
+        __unregisterCharacteristicNotification(uuid);
     }
 
     @Override
@@ -357,14 +400,33 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         BleWriteCharacteristicOperation writeCharacteristicOperation = BleWriteCharacteristicOperation.createInstance(bluetoothGatt, gattCharacteristic, msg);
         // register
         register(writeCharacteristicOperation);
-        long startTimestamp = System.currentTimeMillis();
         // execute operation
+        long startTimestamp = System.currentTimeMillis();
         writeCharacteristicOperation.doRunnableSelfAsync(false);
         writeCharacteristicOperation.waitLock(timeout);
         long consume = System.currentTimeMillis() - startTimestamp;
         boolean isWriteCharacteristicSuc = writeCharacteristicOperation.isNotified();
         BleLiteLog.i(TAG, "__writeCharacteristic() msg: " + Arrays.toString(msg) + " suc: " + isWriteCharacteristicSuc + ", consume: " + consume + " ms");
         return isWriteCharacteristicSuc;
+    }
+
+    private boolean __registerCharacteristicNotification(BluetoothGattCharacteristic characteristic, OnCharacteristicNotificationListener listener) {
+        final BluetoothGatt bluetoothGatt = getBluetoothGatt();
+        if (bluetoothGatt == null) {
+            BleLiteLog.w(TAG, "__registerCharacteristicNotification() fail for bluetoothGatt is null");
+            return false;
+        }
+        boolean isSetCharacteristicNotificationSuc = bluetoothGatt.setCharacteristicNotification(characteristic, true);
+        if (isSetCharacteristicNotificationSuc) {
+            registerListener(characteristic.getUuid(), listener);
+        }
+        BleLiteLog.i(TAG, "__registerCharacteristicNotification() characteristic's uuid: " + characteristic.getUuid()
+                + ", register suc: " + isSetCharacteristicNotificationSuc);
+        return isSetCharacteristicNotificationSuc;
+    }
+
+    private void __unregisterCharacteristicNotification(UUID uuid) {
+        unregisterListener(uuid);
     }
 
     private void __close() {
