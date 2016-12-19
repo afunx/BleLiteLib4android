@@ -122,6 +122,21 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         mBleConnector = connector;
     }
 
+    @Override
+    public boolean connect(String bleAddr, long timeout) {
+        synchronized (mLock4Connect) {
+            boolean isConnectSuc = __connect(bleAddr, timeout);
+            return isConnectSuc;
+        }
+    }
+
+    @Override
+    public void close() {
+        synchronized (mLock4Close) {
+            __close();
+        }
+    }
+
     private boolean __connect(String bleAddr, long timeout) {
         synchronized (mLock4Close) {
             mIsClosed = false;
@@ -154,14 +169,6 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         return isConnectSuc;
     }
 
-    @Override
-    public boolean connect(String bleAddr, long timeout) {
-        synchronized (mLock4Connect) {
-            boolean isConnectSuc = __connect(bleAddr, timeout);
-            return isConnectSuc;
-        }
-    }
-
     private void __close() {
         if (!mIsClosed) {
             mIsClosed = true;
@@ -182,10 +189,4 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         }
     }
 
-    @Override
-    public void close() {
-        synchronized (mLock4Close) {
-            __close();
-        }
-    }
 }
