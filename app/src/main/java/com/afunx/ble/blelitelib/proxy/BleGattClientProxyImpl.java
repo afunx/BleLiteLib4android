@@ -18,12 +18,14 @@ import com.afunx.ble.blelitelib.operation.BleConnectOperation;
 import com.afunx.ble.blelitelib.operation.BleDiscoverServiceOperation;
 import com.afunx.ble.blelitelib.operation.BleOperation;
 import com.afunx.ble.blelitelib.operation.BleRequestMtuOperation;
+import com.afunx.ble.blelitelib.operation.BleWriteCharacteristicOperation;
 import com.afunx.ble.blelitelib.proxy.scheme.BleGattReconnectScheme;
 import com.afunx.ble.blelitelib.proxy.scheme.BleGattReconnectSchemeDefaultImpl;
 import com.afunx.ble.blelitelib.threadpool.BleThreadpool;
 import com.afunx.ble.blelitelib.utils.BleGattStateParser;
 import com.afunx.ble.blelitelib.utils.BleGattStatusParser;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -78,6 +80,11 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     private BleRequestMtuOperation getRequestMtuOperation() {
         final BleOperation operation = mOperations.get(BleOperation.BLE_REQUEST_MTU);
         return operation != null ? (BleRequestMtuOperation) operation : null;
+    }
+
+    private BleWriteCharacteristicOperation getWriteCharacteristicOperation() {
+        final BleOperation operation = mOperations.get(BleOperation.BLE_WRITE_CHARACTERISTIC);
+        return operation != null ? (BleWriteCharacteristicOperation) operation : null;
     }
 
     private BluetoothGatt getBluetoothGatt() {
@@ -153,6 +160,15 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
                 requestMtuOperation.notifyLock();
             }
         }
+
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            BleLiteLog.i(TAG, "onCharacteristicWrite() characteristic uuid: " + characteristic.getUuid() + ", status: " + BleGattStatusParser.parse(status));
+            final BleWriteCharacteristicOperation writeCharacteristicOperation = getWriteCharacteristicOperation();
+            if (status == BluetoothGatt.GATT_SUCCESS && writeCharacteristicOperation != null) {
+                writeCharacteristicOperation.notifyLock();
+            }
+        }
     };
 
     private void setBleConnector(BleConnector connector) {
@@ -180,6 +196,11 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     @Override
     public boolean requestMtu(int mtu, long timeout) {
         return __requestMtu(mtu, timeout);
+    }
+    
+    @Override
+    public boolean writeCharacteristic(@NonNull BluetoothGattCharacteristic gattCharacteristic, @NonNull byte[] msg, long timeout) {
+        return __writeCharacteristic(gattCharacteristic, msg, timeout);
     }
 
     @Override
@@ -240,7 +261,7 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         return isServiceDiscoverSuc;
     }
 
-    private BluetoothGattService __discoverService(@NonNull UUID uuid, long timeout) {
+    private BluetoothGattService __discoverService(UUID uuid, long timeout) {
         final BluetoothGatt bluetoothGatt = getBluetoothGatt();
         boolean isServiceDiscoverSuc = __discoverService(bluetoothGatt, timeout);
         if (isServiceDiscoverSuc) {
@@ -277,10 +298,31 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         // execute operation
         requestMtuOperation.doRunnableSelfAsync(false);
         requestMtuOperation.waitLock(timeout);
-        boolean isRequestMtuSuc = requestMtuOperation.isNotified();
         long consume = System.currentTimeMillis() - startTimestamp;
+        boolean isRequestMtuSuc = requestMtuOperation.isNotified();
         BleLiteLog.i(TAG, "__requestMtu() mtu: " + mtu + " suc: " + isRequestMtuSuc + ", consume: " + consume + " ms");
         return isRequestMtuSuc;
+    }
+
+
+    private boolean __writeCharacteristic(final BluetoothGattCharacteristic gattCharacteristic, final byte[] msg, long timeout) {
+        final BluetoothGatt bluetoothGatt = getBluetoothGatt();
+        if (bluetoothGatt == null) {
+            BleLiteLog.w(TAG, "__writeCharacteristic() fail for bluetoothGatt is null");
+            return false;
+        }
+        // create operation
+        BleWriteCharacteristicOperation writeCharacteristicOperation = BleWriteCharacteristicOperation.createInstance(bluetoothGatt, gattCharacteristic, msg);
+        // register
+        register(writeCharacteristicOperation);
+        long startTimestamp = System.currentTimeMillis();
+        // execute operation
+        writeCharacteristicOperation.doRunnableSelfAsync(false);
+        writeCharacteristicOperation.waitLock(timeout);
+        long consume = System.currentTimeMillis() - startTimestamp;
+        boolean isWriteCharacteristicSuc = writeCharacteristicOperation.isNotified();
+        BleLiteLog.i(TAG, "__writeCharacteristic() msg: " + Arrays.toString(msg) + " suc: " + isWriteCharacteristicSuc + ", consume: " + consume + " ms");
+        return isWriteCharacteristicSuc;
     }
 
     private void __close() {
@@ -291,6 +333,7 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
             unregister(BleOperation.BLE_CONNECT);
             unregister(BleOperation.BLE_DISCOVER_SERVICE);
             unregister(BleOperation.BLE_REQUEST_MTU);
+            unregister(BleOperation.BLE_WRITE_CHARACTERISTIC);
             // create operation
             final BluetoothGatt bluetoothGatt = getBluetoothGatt();
             if (bluetoothGatt == null) {

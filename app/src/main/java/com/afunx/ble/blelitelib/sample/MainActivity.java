@@ -1,5 +1,6 @@
 package com.afunx.ble.blelitelib.sample;
 
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
@@ -59,10 +60,14 @@ public class MainActivity extends AppCompatActivity {
                     Log.e(TAG, "connect and close count: " + (++count));
                     proxy.connect(bleAddr, 20000);
                     BluetoothGattService gattService = proxy.discoverService(UUID_WIFI_SERVICE, 5000);
-                    if (gattService != null) {
-                        proxy.discoverCharacteristic(gattService, UUID_CONFIGURE_CHARACTERISTIC);
-                    }
                     proxy.requestMtu(64,2000);
+                    if (gattService != null) {
+                        BluetoothGattCharacteristic characteristic = proxy.discoverCharacteristic(gattService, UUID_CONFIGURE_CHARACTERISTIC);
+                        if(characteristic!=null) {
+                            byte[] msg = "ssid:wifi-11".getBytes();
+                            proxy.writeCharacteristic(characteristic, msg, 5000);
+                        }
+                    }
                     proxy.close();
                     try {
                         Thread.sleep(1000);

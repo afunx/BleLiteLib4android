@@ -46,12 +46,22 @@ public interface BleGattClientProxy {
     /**
      * request mtu
      *
-     * @param mtu the mtu
+     * @param mtu     the mtu
      * @param timeout timeout in milliseconds
      * @return whether request mtu is suc
      */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     boolean requestMtu(int mtu, long timeout);
+
+    /**
+     * write characteristic
+     *
+     * @param gattCharacteristic the characteristic
+     * @param msg                the message in bytes
+     * @param timeout            timeout in milliseconds
+     * @return whether write characteristic is suc
+     */
+    boolean writeCharacteristic(@NonNull BluetoothGattCharacteristic gattCharacteristic, @NonNull byte[] msg, long timeout);
 
     /**
      * close and release resources

@@ -19,6 +19,7 @@ public interface BleOperation extends Runnable{
     long BLE_DISCOVER_CHARACTERISTIC_SUC = 0x0009;
     long BLE_DISCOVER_CHARACTERISTIC_TIMEOUT = 0x000a;
     long BLE_REQUEST_MTU = 0x000b;
+    long BLE_WRITE_CHARACTERISTIC = 0x000c;
 
     abstract void run();
 
