@@ -54,6 +54,15 @@ public interface BleGattClientProxy {
     boolean requestMtu(int mtu, long timeout);
 
     /**
+     * read characteristic
+     *
+     * @param gattCharacteristic the characteristic
+     * @param timeout            timeout in milliseconds
+     * @return null when fail or bytes read
+     */
+    byte[] readCharacteristic(@NonNull BluetoothGattCharacteristic gattCharacteristic, long timeout);
+
+    /**
      * write characteristic
      *
      * @param gattCharacteristic the characteristic

@@ -13,6 +13,7 @@ import com.afunx.ble.blelitelib.R;
 import com.afunx.ble.blelitelib.proxy.BleGattClientProxy;
 import com.afunx.ble.blelitelib.proxy.BleGattClientProxyImpl;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
@@ -66,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
                         if(characteristic!=null) {
                             byte[] msg = "ssid:wifi-11".getBytes();
                             proxy.writeCharacteristic(characteristic, msg, 5000);
+                            byte[] msgRead = proxy.readCharacteristic(characteristic, 5000);
+                            System.out.println("BH msgRead: " + Arrays.toString(msgRead));
                         }
                     }
                     proxy.close();
