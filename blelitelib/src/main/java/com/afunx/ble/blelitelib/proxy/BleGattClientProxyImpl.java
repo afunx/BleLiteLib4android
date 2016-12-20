@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.util.LongSparseArray;
 
 import com.afunx.ble.blelitelib.connector.BleConnector;
@@ -36,6 +37,7 @@ import java.util.UUID;
 public class BleGattClientProxyImpl implements BleGattClientProxy {
 
     private static final String TAG = "BleGattClientProxyImpl";
+    private static final String VERSION = "v0.8.0";
 
     private volatile BleConnector mBleConnector;
     private volatile boolean mIsClosed = false;
@@ -48,6 +50,7 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     private final Object mLock4Close = new Object();
 
     public BleGattClientProxyImpl(Context appContext) {
+        Log.i(TAG,"blelitelib version: " + VERSION);
         mAppContext = appContext.getApplicationContext();
     }
 

@@ -9,7 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-import com.afunx.ble.blelitelib.R;
+import com.afunx.ble.blelitelib.sample.R;
 import com.afunx.ble.blelitelib.proxy.BleGattClientProxy;
 import com.afunx.ble.blelitelib.proxy.BleGattClientProxyImpl;
 

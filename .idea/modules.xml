@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/BleLiteLib.iml" filepath="$PROJECT_DIR$/BleLiteLib.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/blelitelib/blelitelib.iml" filepath="$PROJECT_DIR$/blelitelib/blelitelib.iml" />
     </modules>
   </component>
 </project>
