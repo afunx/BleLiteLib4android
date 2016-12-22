@@ -37,7 +37,7 @@ import java.util.UUID;
 public class BleGattClientProxyImpl implements BleGattClientProxy {
 
     private static final String TAG = "BleGattClientProxyImpl";
-    private static final String VERSION = "v0.8.0";
+    private static final String VERSION = "v0.8.1";
 
     private volatile BleConnector mBleConnector;
     private volatile boolean mIsClosed = false;
