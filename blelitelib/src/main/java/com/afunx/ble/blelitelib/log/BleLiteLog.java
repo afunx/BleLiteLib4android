@@ -2,69 +2,97 @@ package com.afunx.ble.blelitelib.log;
 
 public class BleLiteLog {
 
-    private static volatile boolean sEnabled = true;
+	private static final boolean sDebug = true;
 
-    private static final String TAG = "BleLiteLog";
+	private static final String TAG = "BleLiteLog";
 
-    private static volatile IBleLog sBleLogImpl = new BleLogImpl();
+	/**
+	 * BleLiteLogTag could make log filter easy 
+	 */
+	private static final boolean sBleLiteLogTag = true;
 
-    public static void setEnabled(boolean enabled) {
-        sEnabled = enabled;
-    }
+	private BleLiteLog() {
+	}
 
-    public static void setBleLogImpl(IBleLog blelog) {
-        sBleLogImpl = blelog;
-    }
+	/**************************** Log ****************************/
+	public static int v(String tag, String msg) {
+		if (sBleLiteLogTag && sDebug) {
+			msg = tag + ": " + msg;
+			tag = TAG;
+		}
+		return sDebug ? android.util.Log.v(tag, msg) : -1;
+	}
 
-    /**
-     * BleLiteLogTag could make log filter easy
-     */
-    private static final boolean sBleLiteLogTag = true;
+	public static int d(String tag, String msg) {
+		if (sBleLiteLogTag && sDebug) {
+			msg = tag + ": " + msg;
+			tag = TAG;
+		}
+		return sDebug ? android.util.Log.d(tag, msg) : -1;
+	}
 
-    private BleLiteLog() {
-    }
+	public static int i(String tag, String msg) {
+		if (sBleLiteLogTag && sDebug) {
+			msg = tag + ": " + msg;
+			tag = TAG;
+		}
+		return sDebug ? android.util.Log.i(tag, msg) : -1;
+	}
 
-    /****************************
-     * Log
-     ****************************/
-    public static int v(String tag, String msg) {
-        if (sBleLiteLogTag && sEnabled) {
-            msg = tag + ": " + msg;
-            tag = TAG;
-        }
-        return sEnabled && sBleLogImpl != null ? sBleLogImpl.v(tag, msg) : -1;
-    }
+	public static int w(String tag, String msg) {
+		if (sBleLiteLogTag && sDebug) {
+			msg = tag + ": " + msg;
+			tag = TAG;
+		}
+		return sDebug ? android.util.Log.w(tag, msg) : -1;
+	}
 
-    public static int d(String tag, String msg) {
-        if (sBleLiteLogTag && sEnabled) {
-            msg = tag + ": " + msg;
-            tag = TAG;
-        }
-        return sEnabled && sBleLogImpl != null ? sBleLogImpl.d(tag, msg) : -1;
-    }
+	public static int e(String tag, String msg) {
+		if (sBleLiteLogTag && sDebug) {
+			msg = tag + ": " + msg;
+			tag = TAG;
+		}
+		return sDebug ? android.util.Log.e(tag, msg) : -1;
+	}
 
-    public static int i(String tag, String msg) {
-        if (sBleLiteLogTag && sEnabled) {
-            msg = tag + ": " + msg;
-            tag = TAG;
-        }
-        return sEnabled && sBleLogImpl != null ? sBleLogImpl.i(tag, msg) : -1;
-    }
+	/**************************** Log with Throwable ****************************/
+	public static int v(String tag, String msg, Throwable tr) {
+		if (sBleLiteLogTag && sDebug) {
+			msg = tag + ": " + msg;
+			tag = TAG;
+		}
+		return sDebug ? android.util.Log.v(tag, msg, tr) : -1;
+	}
 
-    public static int w(String tag, String msg) {
-        if (sBleLiteLogTag && sEnabled) {
-            msg = tag + ": " + msg;
-            tag = TAG;
-        }
-        return sEnabled && sBleLogImpl != null ? sBleLogImpl.w(tag, msg) : -1;
-    }
+	public static int d(String tag, String msg, Throwable tr) {
+		if (sBleLiteLogTag && sDebug) {
+			msg = tag + ": " + msg;
+			tag = TAG;
+		}
+		return sDebug ? android.util.Log.d(tag, msg, tr) : -1;
+	}
 
-    public static int e(String tag, String msg) {
-        if (sBleLiteLogTag && sEnabled) {
-            msg = tag + ": " + msg;
-            tag = TAG;
-        }
-        return sEnabled && sBleLogImpl != null ? sBleLogImpl.e(tag, msg) : -1;
-    }
+	public static int i(String tag, String msg, Throwable tr) {
+		if (sBleLiteLogTag && sDebug) {
+			msg = tag + ": " + msg;
+			tag = TAG;
+		}
+		return sDebug ? android.util.Log.i(tag, msg, tr) : -1;
+	}
 
+	public static int w(String tag, String msg, Throwable tr) {
+		if (sBleLiteLogTag && sDebug) {
+			msg = tag + ": " + msg;
+			tag = TAG;
+		}
+		return sDebug ? android.util.Log.w(tag, msg, tr) : -1;
+	}
+
+	public static int e(String tag, String msg, Throwable tr) {
+		if (sBleLiteLogTag && sDebug) {
+			msg = tag + ": " + msg;
+			tag = TAG;
+		}
+		return sDebug ? android.util.Log.e(tag, msg, tr) : -1;
+	}
 }
