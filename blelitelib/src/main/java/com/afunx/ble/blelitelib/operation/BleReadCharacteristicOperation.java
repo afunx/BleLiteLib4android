@@ -23,7 +23,7 @@ public class BleReadCharacteristicOperation extends BleOperationAbs<byte[]> {
     }
 
     @Override
-    protected void clearConcurentOperation() {
+    protected void clearConcurrentOperation() {
 
     }
 

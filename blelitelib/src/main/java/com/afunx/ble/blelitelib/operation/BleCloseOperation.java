@@ -22,7 +22,7 @@ public class BleCloseOperation extends BleOperationAbs {
     }
 
     @Override
-    protected void clearConcurentOperation() {
+    protected void clearConcurrentOperation() {
     }
 
     @Override

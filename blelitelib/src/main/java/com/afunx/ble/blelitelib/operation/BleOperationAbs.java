@@ -8,8 +8,6 @@ import com.afunx.ble.blelitelib.log.BleLiteLog;
 import com.afunx.ble.blelitelib.proxy.BleGattClientProxy;
 import com.afunx.ble.blelitelib.threadpool.BleThreadpool;
 
-import java.util.Formatter;
-
 /**
  * Created by afunx on 13/12/2016.
  */
@@ -150,11 +148,11 @@ public abstract class BleOperationAbs<T> implements BleOperation {
         mBluetoothGattCallback = null;
     }
 
-    protected abstract void clearConcurentOperation();
+    protected abstract void clearConcurrentOperation();
 
     public final void clear() {
         BleLiteLog.v(TAG, "clear() called by " + this);
-        clearConcurentOperation();
+        clearConcurrentOperation();
         clearBleOperationAbs();
     }
 

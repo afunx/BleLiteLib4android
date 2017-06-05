@@ -20,7 +20,7 @@ public class BleDiscoverServiceOperation extends BleOperationAbs {
     }
 
     @Override
-    protected void clearConcurentOperation() {
+    protected void clearConcurrentOperation() {
 
     }
 

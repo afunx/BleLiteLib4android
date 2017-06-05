@@ -24,7 +24,7 @@ public class BleRequestMtuOperation extends BleOperationAbs {
 
 
     @Override
-    protected void clearConcurentOperation() {
+    protected void clearConcurrentOperation() {
 
     }
 

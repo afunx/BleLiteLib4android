@@ -27,7 +27,7 @@ public class BleConnectOperation extends BleOperationAbs {
     }
 
     @Override
-    protected void clearConcurentOperation() {
+    protected void clearConcurrentOperation() {
     }
 
     @Override

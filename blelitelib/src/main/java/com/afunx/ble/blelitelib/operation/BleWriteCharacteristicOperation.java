@@ -25,7 +25,7 @@ public class BleWriteCharacteristicOperation extends BleOperationAbs {
     }
 
     @Override
-    protected void clearConcurentOperation() {
+    protected void clearConcurrentOperation() {
 
     }
 
