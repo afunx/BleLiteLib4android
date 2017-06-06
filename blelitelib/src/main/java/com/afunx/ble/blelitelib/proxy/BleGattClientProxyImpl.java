@@ -3,6 +3,7 @@ package com.afunx.ble.blelitelib.proxy;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
@@ -20,6 +21,7 @@ import com.afunx.ble.blelitelib.operation.BleOperation;
 import com.afunx.ble.blelitelib.operation.BleReadCharacteristicOperation;
 import com.afunx.ble.blelitelib.operation.BleRequestMtuOperation;
 import com.afunx.ble.blelitelib.operation.BleWriteCharacteristicOperation;
+import com.afunx.ble.blelitelib.operation.BleWriteDescriptorOperation;
 import com.afunx.ble.blelitelib.proxy.scheme.BleGattReconnectScheme;
 import com.afunx.ble.blelitelib.proxy.scheme.BleGattReconnectSchemeDefaultImpl;
 import com.afunx.ble.blelitelib.threadpool.BleThreadpool;
@@ -37,7 +39,9 @@ import java.util.UUID;
 public class BleGattClientProxyImpl implements BleGattClientProxy {
 
     private static final String TAG = "BleGattClientProxyImpl";
-    private static final String VERSION = "v0.8.1";
+    private static final String VERSION = "v0.8.3";
+
+    private static final String UUID_CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR = "00002902-0000-1000-8000-00805f9b34fb";
 
     private volatile BleConnector mBleConnector;
     private volatile boolean mIsClosed = false;
@@ -116,6 +120,11 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     private BleWriteCharacteristicOperation getWriteCharacteristicOperation() {
         final BleOperation operation = mOperations.get(BleOperation.BLE_WRITE_CHARACTERISTIC);
         return operation != null ? (BleWriteCharacteristicOperation) operation : null;
+    }
+
+    private BleWriteDescriptorOperation getWriteDescriptorOperation() {
+        final BleOperation operation = mOperations.get(BleOperation.BLE_WRITE_DESCRIPTOR);
+        return operation != null ? (BleWriteDescriptorOperation) operation : null;
     }
 
     private BluetoothGatt getBluetoothGatt() {
@@ -220,6 +229,16 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
             if (listener != null) {
                 final byte[] msg = characteristic.getValue();
                 listener.onCharacteristicNotification(msg);
+            }
+        }
+
+        @Override
+        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            final UUID uuid = descriptor.getUuid();
+            BleLiteLog.i(TAG, "onDescriptorWrite() characteristic uuid: " + uuid);
+            final BleWriteDescriptorOperation writeDescriptorOperation = getWriteDescriptorOperation();
+            if (status == BluetoothGatt.GATT_SUCCESS && writeDescriptorOperation != null) {
+                writeDescriptorOperation.notifyLock();
             }
         }
     };
@@ -413,6 +432,26 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         return isWriteCharacteristicSuc;
     }
 
+    private boolean __writeDescriptor(final BluetoothGattDescriptor descriptor, final byte[] msg, long timeout) {
+        final BluetoothGatt bluetoothGatt = getBluetoothGatt();
+        if (bluetoothGatt == null) {
+            BleLiteLog.w(TAG, "__writeDescriptor() fail for bluetoothGatt is null");
+            return false;
+        }
+        // create operation
+        BleWriteDescriptorOperation writeDescriptorOperation = BleWriteDescriptorOperation.createInstance(bluetoothGatt, descriptor, msg);
+        // register
+        register(writeDescriptorOperation);
+        // execute operation
+        long startTimestamp = System.currentTimeMillis();
+        writeDescriptorOperation.doRunnableSelfAsync(false);
+        writeDescriptorOperation.waitLock(timeout);
+        long consume = System.currentTimeMillis() - startTimestamp;
+        boolean isWriteDescriptorSuc = writeDescriptorOperation.isNotified();
+        BleLiteLog.i(TAG, "__writeDescriptor() msg: " + Arrays.toString(msg) + " suc: " + isWriteDescriptorSuc + ", consume: " + consume + " ms");
+        return isWriteDescriptorSuc;
+    }
+
     private boolean __registerCharacteristicNotification(BluetoothGattCharacteristic characteristic, OnCharacteristicNotificationListener listener) {
         final BluetoothGatt bluetoothGatt = getBluetoothGatt();
         if (bluetoothGatt == null) {
@@ -425,6 +464,15 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         }
         BleLiteLog.i(TAG, "__registerCharacteristicNotification() characteristic's uuid: " + characteristic.getUuid()
                 + ", register suc: " + isSetCharacteristicNotificationSuc);
+
+        final BluetoothGattDescriptor descriptor = characteristic.getDescriptor(BleUuidUtils.str2uuid(UUID_CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR));
+
+        final boolean enable = true;
+        if (descriptor != null) {
+            byte[] msg = enable ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE :
+                    BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
+            return __writeDescriptor(descriptor, msg, 2000);
+        }
         return isSetCharacteristicNotificationSuc;
     }
 

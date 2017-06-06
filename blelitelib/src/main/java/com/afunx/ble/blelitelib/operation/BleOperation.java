@@ -14,6 +14,7 @@ public interface BleOperation extends Runnable {
     long BLE_READ_CHARACTERISTIC = 0x0004;
     long BLE_REQUEST_MTU = 0x0005;
     long BLE_WRITE_CHARACTERISTIC = 0x0006;
+    long BLE_WRITE_DESCRIPTOR = 0x0007;
 
     abstract void run();
 
