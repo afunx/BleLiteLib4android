@@ -28,8 +28,8 @@ import com.afunx.ble.blelitelib.threadpool.BleThreadpool;
 import com.afunx.ble.blelitelib.utils.BleGattStateParser;
 import com.afunx.ble.blelitelib.utils.BleGattStatusParser;
 import com.afunx.ble.blelitelib.utils.BleUuidUtils;
+import com.afunx.ble.blelitelib.utils.HexUtils;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -39,7 +39,7 @@ import java.util.UUID;
 public class BleGattClientProxyImpl implements BleGattClientProxy {
 
     private static final String TAG = "BleGattClientProxyImpl";
-    private static final String VERSION = "v0.8.3";
+    private static final String VERSION = "v0.8.4";
 
     private static final String UUID_CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR = "00002902-0000-1000-8000-00805f9b34fb";
 
@@ -224,10 +224,10 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             final UUID uuid = characteristic.getUuid();
-            BleLiteLog.i(TAG, "onCharacteristicChanged() characteristic uuid: " + uuid);
+            final byte[] msg = characteristic.getValue();
+            BleLiteLog.i(TAG, "onCharacteristicChanged() characteristic uuid: " + uuid + " msg: " + HexUtils.bytes2HexString(msg));
             final OnCharacteristicNotificationListener listener = getListener(uuid);
             if (listener != null) {
-                final byte[] msg = characteristic.getValue();
                 listener.onCharacteristicNotification(msg);
             }
         }
@@ -408,7 +408,7 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         readCharacteristicOperation.waitLock(timeout);
         long consume = System.currentTimeMillis() - startTimestamp;
         final byte[] msg = readCharacteristicOperation.isNotified() ? readCharacteristicOperation.getResult() : null;
-        BleLiteLog.i(TAG, "__readCharacteristic() gattCharacteristic's uuid: " + gattCharacteristic.getUuid() + ", consume: " + consume + " ms" + ", msg: " + Arrays.toString(msg));
+        BleLiteLog.i(TAG, "__readCharacteristic() gattCharacteristic's uuid: " + gattCharacteristic.getUuid() + ", consume: " + consume + " ms" + ", msg: " + HexUtils.bytes2HexString(msg));
         return msg;
     }
 
@@ -428,7 +428,7 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         writeCharacteristicOperation.waitLock(timeout);
         long consume = System.currentTimeMillis() - startTimestamp;
         boolean isWriteCharacteristicSuc = writeCharacteristicOperation.isNotified();
-        BleLiteLog.i(TAG, "__writeCharacteristic() msg: " + Arrays.toString(msg) + " suc: " + isWriteCharacteristicSuc + ", consume: " + consume + " ms");
+        BleLiteLog.i(TAG, "__writeCharacteristic() msg: " + HexUtils.bytes2HexString(msg) + " suc: " + isWriteCharacteristicSuc + ", consume: " + consume + " ms");
         return isWriteCharacteristicSuc;
     }
 
@@ -448,7 +448,7 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         writeDescriptorOperation.waitLock(timeout);
         long consume = System.currentTimeMillis() - startTimestamp;
         boolean isWriteDescriptorSuc = writeDescriptorOperation.isNotified();
-        BleLiteLog.i(TAG, "__writeDescriptor() msg: " + Arrays.toString(msg) + " suc: " + isWriteDescriptorSuc + ", consume: " + consume + " ms");
+        BleLiteLog.i(TAG, "__writeDescriptor() msg: " + HexUtils.bytes2HexString(msg) + " suc: " + isWriteDescriptorSuc + ", consume: " + consume + " ms");
         return isWriteDescriptorSuc;
     }
 
