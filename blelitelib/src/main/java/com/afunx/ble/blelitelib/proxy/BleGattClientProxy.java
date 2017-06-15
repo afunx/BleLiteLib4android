@@ -84,6 +84,16 @@ public interface BleGattClientProxy {
     boolean writeCharacteristic(@NonNull BluetoothGattCharacteristic gattCharacteristic, @NonNull byte[] msg, long timeout);
 
     /**
+     * write characteristic no response
+     *
+     * @param gattCharacteristic the characteristic
+     * @param msg                the message in bytes
+     * @param interval           interval after write in milliseconds
+     * @return whether write characteristic no response is suc
+     */
+    boolean writeCharacteristicNoResponse(@NonNull BluetoothGattCharacteristic gattCharacteristic, @NonNull byte[] msg, long interval);
+
+    /**
      * register characteristic notification listener
      *
      * @param characteristic the characteristic
