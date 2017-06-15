@@ -40,7 +40,7 @@ import java.util.UUID;
 public class BleGattClientProxyImpl implements BleGattClientProxy {
 
     private static final String TAG = "BleGattClientProxyImpl";
-    private static final String VERSION = "v0.8.4.1";
+    private static final String VERSION = "v0.8.4.2";
 
     private static final String UUID_CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR = "00002902-0000-1000-8000-00805f9b34fb";
 
@@ -448,10 +448,12 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         BleWriteCharacteristicNoResponseOperation writeCharacteristicNoResponseOperation = BleWriteCharacteristicNoResponseOperation.createInstance(bluetoothGatt, gattCharacteristic, msg);
         // execute operation
         writeCharacteristicNoResponseOperation.doRunnableSelfAsync(false);
-        try {
-            Thread.sleep(interval);
-        } catch (InterruptedException ignore) {
-            return false;
+        if (interval > 0) {
+            try {
+                Thread.sleep(interval);
+            } catch (InterruptedException ignore) {
+                return false;
+            }
         }
         boolean isWriteCharacteristicNoResponseSuc = true;
         BleLiteLog.i(TAG, "__writeCharacteristicNoResponse() msg: " + HexUtils.bytes2HexString(msg) + " suc: " + isWriteCharacteristicNoResponseSuc + ", interval: " + interval + " ms");
