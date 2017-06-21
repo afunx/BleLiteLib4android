@@ -8,7 +8,7 @@ import android.support.annotation.NonNull;
  * Created by afunx on 15/06/2017.
  */
 
-public class BleWriteCharacteristicNoResponseOperation  extends BleOperationAbs {
+public class BleWriteCharacteristicNoResponseOperation extends BleOperationAbs {
 
     private final BluetoothGatt mBluetoothGatt;
     private final BluetoothGattCharacteristic mCharacteristic;
