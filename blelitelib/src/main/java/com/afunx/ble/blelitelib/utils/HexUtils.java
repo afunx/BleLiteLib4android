@@ -20,6 +20,9 @@ public class HexUtils {
      * @return 16进制大写字符串
      */
     public static String bytes2HexString(byte[] bytes) {
+        if (bytes == null) {
+            return null;
+        }
         return bytes2HexString(bytes, 0, bytes.length);
     }
 
