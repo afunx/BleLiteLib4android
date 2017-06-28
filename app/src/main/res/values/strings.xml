@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">BleLiteLibSimple</string>
+    <string name="title_activity_scan">ScanActivity</string>
 </resources>

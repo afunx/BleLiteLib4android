@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import com.afunx.ble.blelitelib.app.R;
 import com.afunx.ble.blelitelib.proxy.BleGattClientProxy;
 import com.afunx.ble.blelitelib.proxy.BleGattClientProxyImpl;
 import com.afunx.ble.blelitelib.utils.BleUuidUtils;
