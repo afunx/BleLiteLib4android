@@ -17,9 +17,9 @@ import com.afunx.ble.blelitelib.utils.HexUtils;
 import java.util.Arrays;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity {
+public class SimpleActivity extends AppCompatActivity {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "SimpleActivity";
     private volatile BleGattClientProxy mProxy;
     private volatile boolean mIsStop;
     private Button tapBtn;
@@ -523,7 +523,7 @@ public class MainActivity extends AppCompatActivity {
                 .fromString("0000ffff-0000-1000-8000-00805f9b34fb");
         final UUID UUID_CONFIGURE_CHARACTERISTIC = UUID
                 .fromString("0000ff01-0000-1000-8000-00805f9b34fb");
-        final Context context = MainActivity.this;
+        final Context context = SimpleActivity.this;
         final BleGattClientProxy proxy = mProxy;
         new Thread() {
             @Override
