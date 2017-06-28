@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">BleLiteLibSimple</string>
     <string name="title_activity_scan">ScanActivity</string>
+
+    <string name="device_name_unknown_device">Unkonwn Device</string>
+    <string name="device_address">Address</string>
+    <string name="device_signal">Signal</string>
+
+    <string name="scaning">Scaning&#8230;</string>
 </resources>

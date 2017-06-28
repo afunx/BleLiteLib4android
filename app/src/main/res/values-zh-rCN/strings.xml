@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BleLiteLibSimple</string>
+    <string name="title_activity_scan">ScanActivity</string>
+
+    <string name="device_name_unknown_device">未知设备</string>
+    <string name="device_address">地址</string>
+    <string name="device_signal">信号</string>
+
+    <string name="scaning">扫描中&#8230;</string>
+</resources>
