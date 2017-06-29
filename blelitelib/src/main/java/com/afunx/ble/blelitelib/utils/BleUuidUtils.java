@@ -16,7 +16,27 @@ import java.util.UUID;
 public class BleUuidUtils {
 
     private final static int UUID_LENGTH = 36;
-    private final static String MAGIC_STR = "-0000-1000-8000-00805f9b34fb";
+    // 6E400001-B5A3-F393-E0A9-E50E24DCCA9E
+    private volatile static String MAGIC_HEAD_STR = "0000";
+    private volatile static String MAGIC_TAIL_STR = "-0000-1000-8000-00805f9b34fb";
+
+    /**
+     * set ble magic header for
+     * @param magicHeadStr
+     */
+    public static void setMagicHeadStr(String magicHeadStr) {
+        if (magicHeadStr.length() != MAGIC_HEAD_STR.length()) {
+            throw new IllegalArgumentException("magicHeadStr length is invalid");
+        }
+        MAGIC_HEAD_STR = magicHeadStr;
+    }
+
+    public static void setMagicTailStr(String magicTailStr) {
+        if (magicTailStr.length() != MAGIC_TAIL_STR.length()) {
+            throw new IllegalArgumentException("magicTailStr length is invalid");
+        }
+        MAGIC_TAIL_STR = magicTailStr;
+    }
 
     /**
      * convert uuid from int to UUID
@@ -60,12 +80,13 @@ public class BleUuidUtils {
             throw new IllegalArgumentException("uuid int range is [0x0000,0xffff]");
         }
         StringBuilder sb = new StringBuilder();
+        sb.append(MAGIC_HEAD_STR);
         String hexString = Integer.toHexString(uuid);
-        for (int i = 0; i < 8 - hexString.length(); i++) {
+        for (int i = 0; i < 4 - hexString.length(); i++) {
             sb.append("0");
         }
         sb.append(hexString);
-        sb.append(MAGIC_STR);
+        sb.append(MAGIC_TAIL_STR);
         return sb.toString();
     }
 
@@ -76,7 +97,7 @@ public class BleUuidUtils {
      * @return int of uuid
      */
     public static int str2int(String uuid) {
-        if (uuid == null || uuid.length() != UUID_LENGTH || !uuid.endsWith(MAGIC_STR)) {
+        if (uuid == null || uuid.length() != UUID_LENGTH || !uuid.endsWith(MAGIC_TAIL_STR)) {
             throw new IllegalArgumentException("invalid uuid string");
         }
         String hexString = uuid.substring(4, 8);
