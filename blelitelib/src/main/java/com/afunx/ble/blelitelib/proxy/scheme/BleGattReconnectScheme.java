@@ -28,4 +28,24 @@ public interface BleGattReconnectScheme {
      * @return sleep timestamp in milliseconds by retry count
      */
     long getSleepTimestamp(int retryCount);
+
+    /**
+     * check whether try reconnect again
+     *
+     * @return whether try reconnect again
+     */
+    boolean tryAgain();
+
+    /**
+     * set callback for disconnected
+     *
+     * @param disconnectedCallback disconnected callback
+     * @param timeoutMilli         timeout in milliseconds
+     */
+    void setDisconnectCallback(Runnable disconnectedCallback, long timeoutMilli);
+
+    /**
+     * call disconnectedCallback instantly
+     */
+    void callDisconnectCallbackInstantly();
 }

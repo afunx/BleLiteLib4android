@@ -61,6 +61,11 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         mAppContext = appContext.getApplicationContext();
     }
 
+    @Override
+    public void setDisconnectCallback(Runnable disconnectedCallback, long timeoutMilli) {
+        mReconnectScheme.setDisconnectCallback(disconnectedCallback, timeoutMilli);
+    }
+
     /**
      * register and unregister BleOperation
      */
@@ -150,6 +155,16 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
                 case BluetoothProfile.STATE_DISCONNECTED:
                     synchronized (mLock4Close) {
                         if (!mIsClosed) {
+                            if (!mReconnectScheme.tryAgain()) {
+                                BleLiteLog.w(TAG, "onConnectionStateChange() stop reconnect");
+                                return;
+                            }
+                            // ble is closed manually
+                            if (status == 0x0008) {
+                                mReconnectScheme.callDisconnectCallbackInstantly();
+                                __close();
+                                return;
+                            }
                             int retryCount = mReconnectScheme.addAndGetRetryCount();
                             final long sleepTimestamp = mReconnectScheme.getSleepTimestamp(retryCount);
                             Runnable reConnectRunnable = new Runnable() {
@@ -368,6 +383,10 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
 
     private BluetoothGattService __discoverService(UUID uuid, long timeout) {
         final BluetoothGatt bluetoothGatt = getBluetoothGatt();
+        if (bluetoothGatt == null) {
+            BleLiteLog.w(TAG, "__discoverService() fail for bluetoothGatt is null");
+            return null;
+        }
         boolean isServiceDiscoverSuc = __discoverService(bluetoothGatt, timeout);
         if (isServiceDiscoverSuc) {
             final BluetoothGattService gattService = bluetoothGatt.getService(uuid);

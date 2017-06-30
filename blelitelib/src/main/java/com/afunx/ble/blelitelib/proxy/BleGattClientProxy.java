@@ -28,6 +28,14 @@ public interface BleGattClientProxy {
     }
 
     /**
+     * set callback for disconnected
+     *
+     * @param disconnectedCallback disconnected callback
+     * @param timeoutMilli         timeout in milliseconds
+     */
+    void setDisconnectCallback(Runnable disconnectedCallback, long timeoutMilli);
+
+    /**
      * try to connect to ble device
      *
      * @param bleAddr the ble device's ble address
