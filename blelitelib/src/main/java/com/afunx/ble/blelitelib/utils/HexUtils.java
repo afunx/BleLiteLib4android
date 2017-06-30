@@ -23,6 +23,9 @@ public class HexUtils {
         if (bytes == null) {
             return null;
         }
+        if (bytes.length == 0) {
+            return "";
+        }
         return bytes2HexString(bytes, 0, bytes.length);
     }
 
@@ -40,7 +43,6 @@ public class HexUtils {
         if (bytes == null || offset < 0 || count <= 0 || count - offset > bytes.length) {
             return null;
         }
-        char[] ret = new char[count << 1];
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < count; i++) {
             sb.append(hexDigits[bytes[i + offset] >>> 4 & 0x0f]);
