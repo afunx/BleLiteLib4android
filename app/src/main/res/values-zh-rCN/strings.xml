@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">BleLiteLibSimple</string>
-    <string name="title_activity_scan">ScanActivity</string>
+    <string name="title_activity_scan">Ble测试工具</string>
+    <string name="title_activity_service_list">服务列表</string>
 
     <string name="device_name_unknown_device">未知设备</string>
     <string name="device_address">地址</string>
     <string name="device_signal">信号</string>
 
-    <string name="scaning">扫描中&#8230;</string>
+    <string name="scanning">扫描中&#8230;</string>
+    <string name="btn_connect">连接</string>
+    <string name="btn_disconnect">断开</string>
+    <string name="btn_connecting">连接中&#8230;</string>
+    <string name="btn_log">日志</string>
 </resources>

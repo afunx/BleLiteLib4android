@@ -1,10 +1,15 @@
 <resources>
     <string name="app_name">BleLiteLibSimple</string>
-    <string name="title_activity_scan">ScanActivity</string>
+    <string name="title_activity_scan">Ble Test Tool</string>
+    <string name="title_activity_service_list">Service List</string>
 
     <string name="device_name_unknown_device">Unkonwn Device</string>
     <string name="device_address">Address</string>
     <string name="device_signal">Signal</string>
 
-    <string name="scaning">Scaning&#8230;</string>
+    <string name="scanning">Scanning&#8230;</string>
+    <string name="btn_connect">connect</string>
+    <string name="btn_disconnect">disconnect</string>
+    <string name="btn_connecting">connecting&#8230;</string>
+    <string name="btn_log">log</string>
 </resources>

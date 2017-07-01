@@ -6,12 +6,15 @@ import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.afunx.ble.blelitelib.adapter.BleDeviceAdapter;
 import com.afunx.ble.blelitelib.app.R;
 import com.afunx.ble.blelitelib.bean.BleDevice;
+import com.afunx.ble.blelitelib.proxy.BleProxy;
 import com.afunx.ble.blelitelib.scanner.BleScanner;
 
 
@@ -32,6 +35,13 @@ public class ScanActivity extends AppCompatActivity {
         mListView = (ListView) findViewById(R.id.lv_devices);
         mBleDeviceAdapter = new BleDeviceAdapter(this);
         mListView.setAdapter(mBleDeviceAdapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                BleDevice bleDevice = (BleDevice) mBleDeviceAdapter.getItem(position);
+                ServiceListActivity.startActivity(ScanActivity.this, bleDevice.getBluetoothDevice());
+            }
+        });
 
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -65,13 +75,14 @@ public class ScanActivity extends AppCompatActivity {
             }
         };
 
+        BleProxy.getInstance().init(getApplicationContext());
         doRefresh();
     }
 
     private void doRefresh() {
         final long interval = 5000;
         mSwipeRefreshLayout.setRefreshing(true);
-        Toast.makeText(this, R.string.scaning, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, R.string.scanning, Toast.LENGTH_LONG).show();
         // clear ble devices in UI
         mBleDeviceAdapter.clear();
         new Thread() {
