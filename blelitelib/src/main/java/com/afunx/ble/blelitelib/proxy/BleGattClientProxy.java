@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothGattService;
 import android.os.Build;
 import android.support.annotation.NonNull;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -52,6 +53,14 @@ public interface BleGattClientProxy {
      * @return bluetooth gatt service
      */
     BluetoothGattService discoverService(@NonNull UUID uuid, long timeout);
+
+    /**
+     * discover bluetooth gatt services
+     *
+     * @param timeout timeout in milliseconds
+     * @return bluetooth gatt service list
+     */
+    List<BluetoothGattService> discoverServices(long timeout);
 
     /**
      * discover bluetooth gatt characteristic according to gatt service and uuid

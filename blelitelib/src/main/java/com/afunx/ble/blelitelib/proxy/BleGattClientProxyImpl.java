@@ -33,6 +33,8 @@ import com.afunx.ble.blelitelib.utils.BleGattStatusParser;
 import com.afunx.ble.blelitelib.utils.BleUuidUtils;
 import com.afunx.ble.blelitelib.utils.HexUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -42,7 +44,7 @@ import java.util.UUID;
 public class BleGattClientProxyImpl implements BleGattClientProxy {
 
     private static final String TAG = "BleGattClientProxyImpl";
-    private static final String VERSION = "v0.8.6";
+    private static final String VERSION = "v0.8.8";
 
     private static final String UUID_CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR = "00002902-0000-1000-8000-00805f9b34fb";
 
@@ -279,6 +281,11 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     }
 
     @Override
+    public List<BluetoothGattService> discoverServices(long timeout) {
+        return __discoverServices(timeout);
+    }
+
+    @Override
     public BluetoothGattCharacteristic discoverCharacteristic(@NonNull BluetoothGattService gattService, @NonNull UUID uuid) {
         return __discoverCharacteristic(gattService, uuid);
     }
@@ -387,14 +394,31 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
             BleLiteLog.w(TAG, "__discoverService() fail for bluetoothGatt is null");
             return null;
         }
+        BluetoothGattService gattService = bluetoothGatt.getService(uuid);
+        if (gattService != null) {
+            BleLiteLog.i(TAG, "__discoverService() uuid: " + uuid + ", gattService is exist already");
+            return gattService;
+        }
         boolean isServiceDiscoverSuc = __discoverService(bluetoothGatt, timeout);
         if (isServiceDiscoverSuc) {
-            final BluetoothGattService gattService = bluetoothGatt.getService(uuid);
+            gattService = bluetoothGatt.getService(uuid);
             BleLiteLog.i(TAG, "__discoverService() uuid: " + uuid + ", gattService is " + (gattService != null ? "found" : "missed"));
-            return gattService;
-        } else {
+        }
+        return gattService;
+    }
+
+    private List<BluetoothGattService> __discoverServices(long timeout) {
+        final BluetoothGatt bluetoothGatt = getBluetoothGatt();
+        if (bluetoothGatt == null) {
+            BleLiteLog.w(TAG, "__discoverServices() fail for bluetoothGatt is null");
             return null;
         }
+        List<BluetoothGattService> gattServices = null;
+        boolean isServiceDiscoverSuc = __discoverService(bluetoothGatt, timeout);
+        if (isServiceDiscoverSuc) {
+            gattServices = bluetoothGatt.getServices();
+        }
+        return gattServices;
     }
 
     private BluetoothGattCharacteristic __discoverCharacteristic(BluetoothGattService gattService, UUID uuid) {
