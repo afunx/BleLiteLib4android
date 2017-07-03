@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.afunx.ble.blelitelib.adapter.BleServiceAdapter;
 import com.afunx.ble.blelitelib.app.R;
@@ -248,8 +249,6 @@ public class ServiceListActivity extends AppCompatActivity {
             Log.i(TAG, "onCreate() mBluetoothDevice: " + mBluetoothDevice);
         }
 
-        setTitle(mBluetoothDevice.getName() + ": " + mBluetoothDevice.getAddress());
-
         mBleServiceAdapter = new BleServiceAdapter(this);
         ListView listView_device = (ListView) findViewById(R.id.list_service);
         listView_device.setAdapter(mBleServiceAdapter);
@@ -274,6 +273,11 @@ public class ServiceListActivity extends AppCompatActivity {
                 });
             }
         }, 5000);
+
+        TextView textViewDevName = (TextView) findViewById(R.id.tv_dev_name);
+        textViewDevName.setText(getString(R.string.device_name, mBluetoothDevice.getName()));
+        TextView textViewDevAddr = (TextView) findViewById(R.id.tv_dev_addr);
+        textViewDevAddr.setText(getString(R.string.device_addr, mBluetoothDevice.getAddress()));
 
         testConnectConsumeTotal = 0;
         testNotifyConsumeTotal = 0;

@@ -16,4 +16,7 @@
 
     <string name="service">服务</string>
     <string name="main_service">"类型（主服务）</string>
+
+    <string name="device_name">设备名称：%1$s</string>
+    <string name="device_addr">设备地址：%1$s</string>
 </resources>
