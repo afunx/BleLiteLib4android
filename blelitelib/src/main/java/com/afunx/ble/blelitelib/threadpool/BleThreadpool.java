@@ -37,7 +37,11 @@ public class BleThreadpool {
     }
 
     public void submitInMain(Runnable task) {
-        mMainHandler.post(task);
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            task.run();
+        } else {
+            mMainHandler.post(task);
+        }
     }
 
     public void shutdown() {
