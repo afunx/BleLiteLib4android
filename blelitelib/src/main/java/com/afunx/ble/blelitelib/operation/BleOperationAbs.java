@@ -1,6 +1,7 @@
 package com.afunx.ble.blelitelib.operation;
 
 import android.bluetooth.BluetoothGattCallback;
+import android.os.Looper;
 import android.util.LongSparseArray;
 
 import com.afunx.ble.blelitelib.connector.BleConnector;
@@ -78,6 +79,9 @@ public abstract class BleOperationAbs<T> implements BleOperation {
 
     public final void doRunnableSelfAsync(boolean UI) {
         if (UI) {
+            if (Looper.getMainLooper() == Looper.myLooper()) {
+                throw new IllegalStateException("It can't be called in UI Main Thread.");
+            }
             sThreadpool.submitInMain(this);
         } else {
             sThreadpool.submit(this);
