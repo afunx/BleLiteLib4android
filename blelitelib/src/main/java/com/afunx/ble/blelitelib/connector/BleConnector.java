@@ -40,7 +40,7 @@ public class BleConnector {
         if (mBluetoothGatt == null) {
             BleLiteLog.i(TAG, "connect() connect...");
             BleConnectCompat connectCompat = new BleConnectCompat(mAppContext);
-            BluetoothGatt bluetoothGatt = connectCompat.connectGatt(mBluetoothDevice, false, mBluetoothGattCallback);
+            BluetoothGatt bluetoothGatt = connectCompat.connectGatt(mBluetoothDevice, true, mBluetoothGattCallback);
             mBluetoothGatt = bluetoothGatt;
         } else {
             BleLiteLog.i(TAG, "connect() reconnect...");
