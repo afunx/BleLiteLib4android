@@ -13,17 +13,29 @@
 
         <Button
             android:id="@+id/btn_connect"
-            android:text="@string/btn_connect"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:text="@string/btn_connect" />
 
         <Button
             android:id="@+id/btn_log"
-            android:text="@string/btn_log"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:text="@string/btn_log" />
 
     </LinearLayout>
+
+    <ListView
+        android:id="@+id/list_service"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:divider="@android:color/darker_gray"
+        android:dividerHeight="0.5dp"
+        android:paddingEnd="10dp"
+        android:paddingStart="10dp"
+        android:scrollbars="none" />
+
 </LinearLayout>

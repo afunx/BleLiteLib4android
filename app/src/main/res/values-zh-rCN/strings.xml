@@ -13,4 +13,7 @@
     <string name="btn_disconnect">断开</string>
     <string name="btn_connecting">连接中&#8230;</string>
     <string name="btn_log">日志</string>
+
+    <string name="service">服务</string>
+    <string name="main_service">"类型（主服务）</string>
 </resources>

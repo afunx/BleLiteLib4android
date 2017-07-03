@@ -9,15 +9,20 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ListView;
 
+import com.afunx.ble.blelitelib.adapter.BleServiceAdapter;
 import com.afunx.ble.blelitelib.app.R;
 import com.afunx.ble.blelitelib.constant.Key;
 import com.afunx.ble.blelitelib.proxy.BleGattClientProxy;
 import com.afunx.ble.blelitelib.proxy.BleProxy;
 import com.afunx.ble.blelitelib.utils.BleUuidUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import io.reactivex.Observable;
@@ -30,12 +35,20 @@ import io.reactivex.schedulers.Schedulers;
 
 public class ServiceListActivity extends AppCompatActivity {
 
+    interface STEP {
+        int START = -1;
+        int SUC = 1;
+        int FAIL = 0;
+    }
+
     private static final boolean DEBUG = true;
     private static final String TAG = "ServiceListActivity";
     private BluetoothDevice mBluetoothDevice;
     private BleGattClientProxy mBleGattClientProxy;
     private Button mBtnConnect;
     private Button mBtnLog;
+    private BleServiceAdapter mBleServiceAdapter;
+    private final List<BluetoothGattService> mBleServices = new ArrayList<>();
 
     public static void startActivity(Context context, BluetoothDevice bluetoothDevice) {
         Intent intent = new Intent(context, ServiceListActivity.class);
@@ -43,11 +56,16 @@ public class ServiceListActivity extends AppCompatActivity {
         context.startActivity(intent);
     }
 
-    private void connectAync(final BluetoothDevice bluetoothDevice) {
+    /**
+     * 连接蓝牙
+     *
+     * @param bluetoothDevice
+     */
+    private void connectAsync(final BluetoothDevice bluetoothDevice) {
         Observable<Integer> observable = Observable.create(new ObservableOnSubscribe<Integer>() {
             @Override
             public void subscribe(ObservableEmitter<Integer> e) throws Exception {
-                e.onNext(-1);
+                e.onNext(STEP.START);
                 long timeoutMilli = 30000;
                 long start = System.currentTimeMillis();
                 boolean isConnectSuc = mBleGattClientProxy.connect(bluetoothDevice.getAddress(), timeoutMilli);
@@ -55,7 +73,7 @@ public class ServiceListActivity extends AppCompatActivity {
                 testConnectConsumeTotal += consume;
                 ++testTotalCount;
                 Log.e("afunx", "isConnectSuc: " + isConnectSuc + ", consume: " + consume + ", count: " + testTotalCount + ", avg: " + (testConnectConsumeTotal * 1.0f / testTotalCount) + " ms");
-                e.onNext(isConnectSuc ? 1 : 0);
+                e.onNext(isConnectSuc ? STEP.SUC : STEP.FAIL);
             }
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
 
@@ -67,24 +85,31 @@ public class ServiceListActivity extends AppCompatActivity {
             @Override
             public void onNext(Integer value) {
                 if (DEBUG) {
-                    Log.i(TAG, "connectAync() bluetoothDevice: " + bluetoothDevice + " is connected suc: " + value);
+                    Log.i(TAG, "connectAsync() bluetoothDevice: " + bluetoothDevice + " is connected suc: " + value);
                 }
                 switch (value) {
                     // 开始连接
-                    case -1:
+                    case STEP.START:
                         mBtnConnect.setEnabled(false);
                         mBtnConnect.setText(R.string.btn_connecting);
                         break;
                     // 连接失败
-                    case 0:
+                    case STEP.FAIL:
                         mBtnConnect.setEnabled(true);
                         mBtnConnect.setText(R.string.btn_connect);
                         break;
                     // 连接成功
-                    case 1:
+                    case STEP.SUC:
                         mBtnConnect.setEnabled(true);
                         mBtnConnect.setText(R.string.btn_disconnect);
-//                        testAsync();
+//                        new Thread() {
+//                            @Override
+//                            public void run() {
+//                                testAsync();
+//                            }
+//                        }.start();
+
+                        discoverServicesAsync(mBluetoothDevice);
                         break;
                 }
             }
@@ -100,9 +125,83 @@ public class ServiceListActivity extends AppCompatActivity {
         observable.subscribe(observer);
     }
 
+    /**
+     * 发现服务
+     *
+     * @param bluetoothDevice
+     */
+    private void discoverServicesAsync(final BluetoothDevice bluetoothDevice) {
+
+        Observable<Integer> observable = Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> e) throws Exception {
+                e.onNext(STEP.START);
+                long timeoutMilli = 30000;
+                mBleServices.clear();
+                List<BluetoothGattService> gattServices = mBleGattClientProxy.discoverServices(timeoutMilli);
+                if (gattServices != null) {
+                    mBleServices.addAll(gattServices);
+                    e.onNext(STEP.SUC);
+                } else {
+                    e.onNext(STEP.FAIL);
+                }
+            }
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+
+        Observer<Integer> observer = new Observer<Integer>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                Log.e("afunx", "onSubscribe");
+            }
+
+            @Override
+            public void onNext(Integer value) {
+                switch (value) {
+                    // 开始扫描
+                    case STEP.START:
+                        if (DEBUG) {
+                            Log.i(TAG, "discoverServicesAsync() start");
+                        }
+                        mBleServiceAdapter.clear();
+                        mBleServiceAdapter.notifyDataSetChanged();
+                        break;
+                    // 扫描成功
+                    case STEP.SUC:
+                        if (DEBUG) {
+                            Log.i(TAG, "discoverServicesAsync() suc");
+                        }
+                        mBleServiceAdapter.addResults(mBleServices);
+                        mBleServiceAdapter.notifyDataSetChanged();
+                        break;
+                    // 扫描失败
+                    case STEP.FAIL:
+                        if (DEBUG) {
+                            Log.i(TAG, "discoverServicesAsync() fail");
+                        }
+                        mBleServiceAdapter.clear();
+                        mBleServiceAdapter.notifyDataSetChanged();
+                        break;
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e("afunx", "onError");
+            }
+
+            @Override
+            public void onComplete() {
+                Log.e("afunx", "onComplete");
+            }
+        };
+        observable.subscribe(observer);
+    }
+
     private void disconnectAsync() {
         mBleGattClientProxy.close();
         mBtnConnect.setText(R.string.btn_connect);
+        mBleServiceAdapter.clear();
+        mBleServiceAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -118,7 +217,7 @@ public class ServiceListActivity extends AppCompatActivity {
                     if (DEBUG) {
                         Log.i(TAG, "btnConnect connectAsync()");
                     }
-                    connectAync(mBluetoothDevice);
+                    connectAsync(mBluetoothDevice);
                 } else if (mBtnConnect.getText().toString().equals(getString(R.string.btn_disconnect))) {
                     if (DEBUG) {
                         Log.i(TAG, "btnConnect disconnectAsync()");
@@ -151,6 +250,19 @@ public class ServiceListActivity extends AppCompatActivity {
 
         setTitle(mBluetoothDevice.getName() + ": " + mBluetoothDevice.getAddress());
 
+        mBleServiceAdapter = new BleServiceAdapter(this);
+        ListView listView_device = (ListView) findViewById(R.id.list_service);
+        listView_device.setAdapter(mBleServiceAdapter);
+        listView_device.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                BluetoothGattService service = mBleServiceAdapter.getItem(position);
+//                mBluetoothService.setService(service);
+//                ((OperationActivity) getActivity()).changePage(1);
+                Log.e("afunx", "service: " + service + " is clicked");
+            }
+        });
+
         mBleGattClientProxy.setDisconnectCallback(new Runnable() {
             @Override
             public void run() {
@@ -162,7 +274,6 @@ public class ServiceListActivity extends AppCompatActivity {
                 });
             }
         }, 5000);
-
 
         testConnectConsumeTotal = 0;
         testNotifyConsumeTotal = 0;

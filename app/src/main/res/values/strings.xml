@@ -12,4 +12,7 @@
     <string name="btn_disconnect">disconnect</string>
     <string name="btn_connecting">connecting&#8230;</string>
     <string name="btn_log">log</string>
+
+    <string name="service">Service</string>
+    <string name="main_service">Type (Main Service) </string>
 </resources>
