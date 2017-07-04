@@ -163,6 +163,8 @@ public class ServiceListActivity extends AppCompatActivity {
                         if (DEBUG) {
                             Log.i(TAG, "discoverServicesAsync() start");
                         }
+                        mBtnConnect.setEnabled(false);
+                        mBtnConnect.setText(R.string.btn_discovering);
                         mBleServiceAdapter.clear();
                         mBleServiceAdapter.notifyDataSetChanged();
                         break;
@@ -171,6 +173,8 @@ public class ServiceListActivity extends AppCompatActivity {
                         if (DEBUG) {
                             Log.i(TAG, "discoverServicesAsync() suc");
                         }
+                        mBtnConnect.setEnabled(true);
+                        mBtnConnect.setText(R.string.btn_disconnect);
                         mBleServiceAdapter.addResults(mBleServices);
                         mBleServiceAdapter.notifyDataSetChanged();
                         break;
@@ -179,6 +183,8 @@ public class ServiceListActivity extends AppCompatActivity {
                         if (DEBUG) {
                             Log.i(TAG, "discoverServicesAsync() fail");
                         }
+                        mBtnConnect.setEnabled(true);
+                        mBtnConnect.setText(R.string.btn_disconnect);
                         mBleServiceAdapter.clear();
                         mBleServiceAdapter.notifyDataSetChanged();
                         break;
@@ -258,7 +264,8 @@ public class ServiceListActivity extends AppCompatActivity {
                 BluetoothGattService service = mBleServiceAdapter.getItem(position);
 //                mBluetoothService.setService(service);
 //                ((OperationActivity) getActivity()).changePage(1);
-                Log.e("afunx", "service: " + service + " is clicked");
+                Log.e("afunx", "service: " + service + " is clicked " + service.getUuid());
+                PropertyListActivity.startActivity(ServiceListActivity.this, mBluetoothDevice, service.getUuid());
             }
         });
 

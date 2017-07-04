@@ -2,6 +2,7 @@
     <string name="app_name">BleLiteLibSimple</string>
     <string name="title_activity_scan">Ble Test Tool</string>
     <string name="title_activity_service_list">Service List</string>
+    <string name="title_activity_property_list">Property List</string>
 
     <string name="device_name_unknown_device">Unkonwn Device</string>
     <string name="device_address">Address</string>
@@ -11,6 +12,7 @@
     <string name="btn_connect">connect</string>
     <string name="btn_disconnect">disconnect</string>
     <string name="btn_connecting">connecting&#8230;</string>
+    <string name="btn_discovering">service discovering&#8230;</string>
     <string name="btn_log">log</string>
 
     <string name="service">Service</string>
@@ -18,4 +20,10 @@
 
     <string name="device_name">Device Name：%1$s</string>
     <string name="device_addr">Device Address：%1$s</string>
+
+    <string name="bluetooth_device_null">Bluetooth Device is Null</string>
+    <string name="service_uuid_null">Service Uuid is Null</string>
+    <string name="service_null">Service is Null</string>
+
+    <string name="property">Property</string>
 </resources>

@@ -6,4 +6,5 @@ package com.afunx.ble.blelitelib.constant;
 
 public interface Key {
     String BLUETOOTH_DEVICE = "bluetoothDevice";
+    String BLUETOOTH_GATT_SERVICE_UUID = "BluetoothGattServiceUuid";
 }
