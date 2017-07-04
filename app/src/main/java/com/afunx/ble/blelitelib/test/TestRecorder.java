@@ -17,13 +17,14 @@ public class TestRecorder {
     private static final String TAG = "TestRecorder";
 
     private void checkUIThread() {
-        if (Looper.getMainLooper() != Looper.myLooper()) {
-            throw new IllegalStateException("TestRecorder couldn't be called after UI thread");
+        if (Looper.getMainLooper() == Looper.myLooper()) {
+            throw new IllegalStateException("TestRecorder couldn't be called in UI thread");
         }
     }
 
-    private void log(String msg) {
+    private String log(String msg) {
         Log.e(TAG, mTestTarget + " " + msg);
+        return mTestTarget + " " + msg;
     }
 
     private static long calMaxValue(List<Long> values) {
@@ -83,11 +84,13 @@ public class TestRecorder {
     private final String mTestTarget;
 
     public TestRecorder(@NonNull String testTarget) {
+        reset();
         mTestTarget = testTarget;
     }
 
     private int _startCount;
     private int _stopCount;
+    private int mFailCount;
     private long mTestStartTimestamp;
     private List<Long> mTestConsumeList = new ArrayList<>();
 
@@ -96,6 +99,7 @@ public class TestRecorder {
         mTestConsumeList.clear();
         _startCount = 0;
         _stopCount = 0;
+        mFailCount = 0;
     }
 
     public void start() {
@@ -104,33 +108,57 @@ public class TestRecorder {
         ++_startCount;
     }
 
-    public void stop() {
-        log("stop");
+    public void stop(boolean isSuc) {
+        log("stop suc: " + isSuc);
         long testConsume = System.currentTimeMillis() - mTestStartTimestamp;
-        mTestConsumeList.add(testConsume);
         ++_stopCount;
+        if (isSuc) {
+            mTestConsumeList.add(testConsume);
+        } else {
+            ++mFailCount;
+        }
     }
 
-    public void finish() {
+    public String finish(String msg) {
+
+        StringBuilder sb = new StringBuilder();
+
+        if (msg != null) {
+            sb.append(msg);
+            sb.append("\n");
+            sb.append("\n");
+        }
 
         if (_startCount != _stopCount) {
-            log(("startCount: " + _startCount + ", stopCount: " + _stopCount + ", they should be equal"));
-            return;
+            sb.append(log(("startCount: " + _startCount + ", stopCount: " + _stopCount + ", they should be equal")));
+            sb.append("\n");
+            return sb.toString();
         }
 
         if (mTestConsumeList.size() == 0) {
-            log("test hasn't been started yet");
-            return;
+            sb.append(log("test hasn't been started yet"));
+            sb.append("\n");
+            return sb.toString();
         }
 
+        // suc fail time
+        sb.append(log("suc time: " + mTestConsumeList.size() + ", fail time: " + mFailCount));
+        sb.append("\n");
         // min
-        log("min: " + calMinValue(mTestConsumeList));
+        sb.append(log("min: " + calMinValue(mTestConsumeList) + " ms"));
+        sb.append("\n");
         // max
-        log("max: " + calMaxValue(mTestConsumeList));
+        sb.append(log("max: " + calMaxValue(mTestConsumeList) + " ms"));
+        sb.append("\n");
         // avg
-        log("avg: " + calAvgValue(mTestConsumeList));
+        sb.append(log("avg: " + calAvgValue(mTestConsumeList) + " ms"));
+        sb.append("\n");
         // med
-        log("med: " + calMedValue(mTestConsumeList));
+        sb.append(log("med: " + calMedValue(mTestConsumeList) + " ms"));
+        sb.append("\n");
+        sb.append("\n");
+
+        return sb.toString();
     }
 
     public static void main(String args[]) {
@@ -139,9 +167,9 @@ public class TestRecorder {
         for (long value : values) {
             longList.add(value);
         }
-        System.out.println("Max: " + calMaxValue(longList));
-        System.out.println("Min: " + calMinValue(longList));
-        System.out.println("Avg: " + calAvgValue(longList));
-        System.out.println("Med: " + calMedValue(longList));
+        System.out.println("Max: " + calMaxValue(longList) + " ms");
+        System.out.println("Min: " + calMinValue(longList) + " ms");
+        System.out.println("Avg: " + calAvgValue(longList) + " ms");
+        System.out.println("Med: " + calMedValue(longList) + " ms");
     }
 }

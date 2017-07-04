@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.afunx.ble.blelitelib.test.TestActivity">
+
+    <TextView
+        android:id="@+id/tv_dev_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingEnd="10dp"
+        android:paddingStart="10dp"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/tv_dev_addr"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingEnd="10dp"
+        android:paddingStart="10dp"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/edt_test_count"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="测试次数"
+        android:inputType="number" />
+
+    <Button
+        android:id="@+id/btn_start_test"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="开始测试" />
+</LinearLayout>

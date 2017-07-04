@@ -16,6 +16,7 @@ import com.afunx.ble.blelitelib.app.R;
 import com.afunx.ble.blelitelib.bean.BleDevice;
 import com.afunx.ble.blelitelib.proxy.BleProxy;
 import com.afunx.ble.blelitelib.scanner.BleScanner;
+import com.afunx.ble.blelitelib.test.TestActivity;
 
 
 public class ScanActivity extends AppCompatActivity {
@@ -39,7 +40,8 @@ public class ScanActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 BleDevice bleDevice = (BleDevice) mBleDeviceAdapter.getItem(position);
-                ServiceListActivity.startActivity(ScanActivity.this, bleDevice.getBluetoothDevice());
+//                ServiceListActivity.startActivity(ScanActivity.this, bleDevice.getBluetoothDevice());
+                TestActivity.startActivity(ScanActivity.this, bleDevice.getBluetoothDevice());
             }
         });
 

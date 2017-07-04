@@ -30,6 +30,9 @@
             android:name="com.afunx.ble.blelitelib.activity.PropertyListActivity"
             android:label="@string/title_activity_property_list"
             android:screenOrientation="portrait" />
+        <activity
+            android:name="com.afunx.ble.blelitelib.test.TestActivity"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>
