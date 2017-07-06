@@ -21,6 +21,7 @@ import com.afunx.ble.blelitelib.operation.BleOperation;
 import com.afunx.ble.blelitelib.operation.BleReadCharacteristicOperation;
 import com.afunx.ble.blelitelib.operation.BleRequestMtuOperation;
 import com.afunx.ble.blelitelib.operation.BleWriteCharacterisitcNoResponsePacketOperation;
+import com.afunx.ble.blelitelib.operation.BleWriteCharacterisitcNoResponsePacketOperation2;
 import com.afunx.ble.blelitelib.operation.BleWriteCharacteristicNoResponse20Operation;
 import com.afunx.ble.blelitelib.operation.BleWriteCharacteristicNoResponseOperation;
 import com.afunx.ble.blelitelib.operation.BleWriteCharacteristicOperation;
@@ -44,7 +45,7 @@ import java.util.UUID;
 public class BleGattClientProxyImpl implements BleGattClientProxy {
 
     private static final String TAG = "BleGattClientProxyImpl";
-    private static final String VERSION = "v0.9.0";
+    private static final String VERSION = "v0.9.1";
 
     private static final String UUID_CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR = "00002902-0000-1000-8000-00805f9b34fb";
 
@@ -321,6 +322,11 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     }
 
     @Override
+    public boolean writeCharacterisitcNoResponsePacket2(@NonNull BluetoothGattCharacteristic gattCharacteristic, @NonNull byte[] msg) {
+        return __writeCharacterisitcNoResponsePacket2(gattCharacteristic, msg);
+    }
+
+    @Override
     public boolean registerCharacteristicNotification(@NonNull BluetoothGattCharacteristic characteristic, OnCharacteristicNotificationListener listener) {
         return __registerCharacteristicNotification(characteristic, listener);
     }
@@ -540,6 +546,21 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         BleWriteCharacterisitcNoResponsePacketOperation writeCharacteristicNoResponse20Operation = BleWriteCharacterisitcNoResponsePacketOperation.createInstance(bluetoothGatt, gattCharacteristic, msg, packetSize, packetInterval);
         // execute operation
         writeCharacteristicNoResponse20Operation.doRunnableSelfAsync(false);
+        boolean isWriteCharacteristicNoResponseSuc = true;
+//        BleLiteLog.i(TAG, "__writeCharacteristicNoResponsePacket() msg: " + HexUtils.bytes2HexString(msg) + " suc: " + isWriteCharacteristicNoResponseSuc);
+        return isWriteCharacteristicNoResponseSuc;
+    }
+
+    private boolean __writeCharacterisitcNoResponsePacket2(BluetoothGattCharacteristic gattCharacteristic, byte[] msg) {
+        final BluetoothGatt bluetoothGatt = getBluetoothGatt();
+        if (bluetoothGatt == null) {
+            BleLiteLog.w(TAG, "__writeCharacterisitcNoResponsePacket2() fail for bluetoothGatt is null");
+            return false;
+        }
+        // create operation
+        BleWriteCharacterisitcNoResponsePacketOperation2 writeCharacteristicNoResponse20Operation2 = BleWriteCharacterisitcNoResponsePacketOperation2.createInstance(bluetoothGatt, gattCharacteristic, msg);
+        // execute operation
+        writeCharacteristicNoResponse20Operation2.doRunnableSelfAsync(false);
         boolean isWriteCharacteristicNoResponseSuc = true;
 //        BleLiteLog.i(TAG, "__writeCharacteristicNoResponsePacket() msg: " + HexUtils.bytes2HexString(msg) + " suc: " + isWriteCharacteristicNoResponseSuc);
         return isWriteCharacteristicNoResponseSuc;
