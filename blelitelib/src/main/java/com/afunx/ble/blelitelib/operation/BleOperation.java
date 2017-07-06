@@ -18,6 +18,7 @@ public interface BleOperation extends Runnable {
     long BLE_WRITE_CHARACTERISTIC_NO_RESPONSE = 0x0008;
     long BLE_WRITE_CHARACTERISTIC_NO_RESPONSE_20 = 0x0009;
     long BLE_WRITE_CHARACTERISITC_NO_RESPONSE_PACKET = 0x000a;
+    long BLE_WRITE_CHARACTERISITC_NO_RESPONSE_PACKET2 = 0x000b;
 
     abstract void run();
 
