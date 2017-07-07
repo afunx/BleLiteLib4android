@@ -21,7 +21,7 @@ public class BleWriteCharacterisitcNoResponsePacketOperation2 extends BleOperati
     private final byte[] mMsg;
 
     private static final int PACKET_SIZE = 20;
-    private static int[] PACKET_INTERVALS = new int[]{0, 0, 0, 50};
+    private static int[] PACKET_INTERVALS = new int[]{5, 5, 5, 35};
 
     private static final AtomicInteger mAutoId = new AtomicInteger(0);
     private static volatile long lastTimestamp = 0;
@@ -46,7 +46,7 @@ public class BleWriteCharacterisitcNoResponsePacketOperation2 extends BleOperati
     }
 
     private static synchronized void sleep() {
-        int select = mAutoId.get() % PACKET_INTERVALS.length;
+        int select = mAutoId.getAndAdd(1) % PACKET_INTERVALS.length;
         int sleepTime = PACKET_INTERVALS[select] - (int) (System.currentTimeMillis() - lastTimestamp);
         if (sleepTime > 0) {
             try {
@@ -54,18 +54,22 @@ public class BleWriteCharacterisitcNoResponsePacketOperation2 extends BleOperati
             } catch (InterruptedException ignore) {
             }
         }
+    }
+
+    private static synchronized void updateLastTimestamp() {
         lastTimestamp = System.currentTimeMillis();
     }
 
     @Override
     public void run() {
-        mCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
         final int packetSize = PACKET_SIZE;
         final int size = mMsg.length;
         byte[] bytePacket;
         int count;
 
+        mCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
         for (int offset = 0; offset < size; offset += packetSize) {
+            sleep();
             if (offset + packetSize <= size) {
                 count = packetSize;
             } else {
@@ -75,7 +79,7 @@ public class BleWriteCharacterisitcNoResponsePacketOperation2 extends BleOperati
             mCharacteristic.setValue(bytePacket);
             mBluetoothGatt.writeCharacteristic(mCharacteristic);
             BleLiteLog.i(TAG, "writeCharacteristic() " + HexUtils.bytes2HexString(bytePacket, 0, count));
-            sleep();
+            updateLastTimestamp();
         }
     }
 

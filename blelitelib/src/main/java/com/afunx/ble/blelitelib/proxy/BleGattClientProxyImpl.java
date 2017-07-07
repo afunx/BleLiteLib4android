@@ -322,7 +322,7 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     }
 
     @Override
-    public boolean writeCharacterisitcNoResponsePacket2(@NonNull BluetoothGattCharacteristic gattCharacteristic, @NonNull byte[] msg) {
+    public boolean writeCharacterisitcNoResponse2(@NonNull BluetoothGattCharacteristic gattCharacteristic, @NonNull byte[] msg) {
         return __writeCharacterisitcNoResponsePacket2(gattCharacteristic, msg);
     }
 
