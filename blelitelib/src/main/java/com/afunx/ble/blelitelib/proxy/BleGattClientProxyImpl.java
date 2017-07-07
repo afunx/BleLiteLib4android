@@ -45,7 +45,7 @@ import java.util.UUID;
 public class BleGattClientProxyImpl implements BleGattClientProxy {
 
     private static final String TAG = "BleGattClientProxyImpl";
-    private static final String VERSION = "v0.9.1";
+    private static final String VERSION = "v0.9.2";
 
     private static final String UUID_CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR = "00002902-0000-1000-8000-00805f9b34fb";
 
@@ -322,7 +322,7 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     }
 
     @Override
-    public boolean writeCharacterisitcNoResponsePacket2(@NonNull BluetoothGattCharacteristic gattCharacteristic, @NonNull byte[] msg) {
+    public boolean writeCharacterisitcNoResponse2(@NonNull BluetoothGattCharacteristic gattCharacteristic, @NonNull byte[] msg) {
         return __writeCharacterisitcNoResponsePacket2(gattCharacteristic, msg);
     }
 
