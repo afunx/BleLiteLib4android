@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,14 +23,15 @@ import com.afunx.ble.blelitelib.constant.Key;
 import com.afunx.ble.blelitelib.proxy.BleGattClientProxy;
 import com.afunx.ble.blelitelib.proxy.BleProxy;
 import com.afunx.ble.blelitelib.utils.BleUuidUtils;
-import com.afunx.ble.blelitelib.utils.HexUtils;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class TestActivity extends AppCompatActivity {
 
@@ -43,7 +45,9 @@ public class TestActivity extends AppCompatActivity {
     private TestRecorder mWriteNotifyRecorder;
     private TestRecorder mWriteNotifyLargeRecorder;
     private EditText mEdtTestCount;
-    private Button mBtnConfirm;
+    private Button mBtnConfirm1;
+    private Button mBtnConfirm2;
+    private Spinner mSpinnerConnectInterval;
 
     private String mPhoneModel;
 
@@ -84,9 +88,31 @@ public class TestActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mBtnConfirm.setEnabled(enabled);
+                mBtnConfirm1.setEnabled(enabled);
             }
         });
+    }
+
+    private boolean setConnectInterval(int itemPosition) {
+        // default connect interval
+        if (itemPosition == 0) {
+            return true;
+        } else {
+            --itemPosition;
+        }
+        BluetoothGattService gattService = mBleGattClientProxy.discoverService(BleUuidUtils.int2uuid(0xff90), 0);
+        if (gattService == null) {
+            Log.e(TAG, "setConnectInterval() gattService is null");
+            return false;
+        }
+        BluetoothGattCharacteristic gattCharacteristic = mBleGattClientProxy.discoverCharacteristic(gattService, BleUuidUtils.int2uuid(0xff92));
+        if (gattCharacteristic == null) {
+            Log.e(TAG, "setConnectInterval() gattCharacteristic is null");
+            return false;
+        }
+        boolean isSuc = mBleGattClientProxy.writeCharacteristic(gattCharacteristic, new byte[]{(byte) itemPosition}, 2000);
+        Log.e(TAG, "setConnectInterval() itemPosition: " + itemPosition + " isSuc: " + isSuc);
+        return isSuc;
     }
 
     @Override
@@ -110,8 +136,10 @@ public class TestActivity extends AppCompatActivity {
         TextView textViewDevAddr = (TextView) findViewById(R.id.tv_dev_addr);
         textViewDevAddr.setText(getString(R.string.device_addr, mBluetoothDevice.getAddress()));
 
-        mBtnConfirm = (Button) findViewById(R.id.btn_start_test);
-        mBtnConfirm.setOnClickListener(new View.OnClickListener() {
+        mSpinnerConnectInterval = (Spinner) findViewById(R.id.spinner_connect_interval);
+
+        mBtnConfirm1 = (Button) findViewById(R.id.btn_start_test1);
+        mBtnConfirm1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
@@ -126,9 +154,11 @@ public class TestActivity extends AppCompatActivity {
                             mWriteNotifyRecorder = new TestRecorder("WriteNotify");
                             mWriteNotifyLargeRecorder = new TestRecorder("WriteLargeNotify");
 
+                            int itemPosition = mSpinnerConnectInterval.getSelectedItemPosition();
+
                             testConnectAndDiscoverServices(testCount);
-                            testWriteNotify(testCount);
-                            testWriteNotifyLargeRecorder(testCount);
+                            testWriteNotify(testCount, itemPosition);
+                            testWriteNotifyLargeRecorder(testCount, itemPosition);
                             showTestResult();
                             dismissProgressDialog();
                         }
@@ -139,6 +169,78 @@ public class TestActivity extends AppCompatActivity {
                 }
             }
         });
+
+        mBtnConfirm2 = (Button) findViewById(R.id.btn_start_test2);
+        mBtnConfirm2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mProgressDialog.setTitle("Test starting...");
+                mProgressDialog.show();
+                new Thread() {
+                    @Override
+                    public void run() {
+                        testReceiver();
+                    }
+                }.start();
+            }
+        });
+    }
+
+    private void testReceiver() {
+        boolean isSuc = false;
+        for (int retry = 0; retry < 3 && !isSuc; retry++) {
+            updateProgressDialogTitle("Connecting");
+            isSuc = mBleGattClientProxy.connect(mBluetoothDevice.getAddress(), 30 * 1000);
+            if (isSuc) {
+                updateProgressDialogTitle("Discovering");
+                List<BluetoothGattService> gattServiceList = mBleGattClientProxy.discoverServices(30 * 1000);
+                isSuc = gattServiceList != null;
+            }
+        }
+
+        if (!isSuc) {
+            updateProgressDialogTitle("connect fail or discover services fail");
+            mBleGattClientProxy.close();
+            return;
+        }
+
+        // write notify test
+        BluetoothGattService gattWriteService = mBleGattClientProxy.discoverService(GATT_WRITE_SERVICE_UUID, 0);
+        if (gattWriteService == null) {
+            updateProgressDialogTitle("connect fail or discover services fail 111");
+            mBleGattClientProxy.close();
+            return;
+        }
+        BluetoothGattCharacteristic gattWriteCharacteristic = mBleGattClientProxy.discoverCharacteristic(gattWriteService, GATT_WRITE_PROPERTY_UUID);
+        if (gattWriteCharacteristic == null) {
+            updateProgressDialogTitle("connect fail or discover services fail 222");
+            mBleGattClientProxy.close();
+            return;
+        }
+        BluetoothGattService gattNotifyService = mBleGattClientProxy.discoverService(GATT_NOTIFY_SERVICE_UUID, 0);
+        if (gattNotifyService == null) {
+            updateProgressDialogTitle("connect fail or discover services fail 333");
+            mBleGattClientProxy.close();
+            return;
+        }
+        BluetoothGattCharacteristic gattNotifyCharacteristic = mBleGattClientProxy.discoverCharacteristic(gattNotifyService, GATT_NOTIFY_PROPERTY_UUID);
+        if (gattNotifyCharacteristic == null) {
+            updateProgressDialogTitle("connect fail or discover services fail 444");
+            mBleGattClientProxy.close();
+            return;
+        }
+
+        final AtomicLong count = new AtomicLong(0);
+
+        mBleGattClientProxy.registerCharacteristicNotification(gattNotifyCharacteristic, new BleGattClientProxy.OnCharacteristicNotificationListener() {
+            @Override
+            public void onCharacteristicNotification(byte[] msg) {
+                long bytesCount = count.addAndGet(msg.length);
+                updateProgressDialogTitle("received: " + bytesCount);
+            }
+        });
+
+        updateProgressDialogTitle("Waiting");
     }
 
     private void testConnectAndDiscoverServices(int testCount) {
@@ -159,7 +261,7 @@ public class TestActivity extends AppCompatActivity {
         }
     }
 
-    private void testWriteNotify(int testCount) {
+    private void testWriteNotify(int testCount, int itemPosition) {
         boolean isSuc = false;
         for (int retry = 0; retry < 3 && !isSuc; retry++) {
             updateProgressDialogTitle("Test Write and Notify(2/3) connect device and discover services " + (retry + 1) + " time");
@@ -175,6 +277,21 @@ public class TestActivity extends AppCompatActivity {
                 mWriteNotifyRecorder.start();
                 mWriteNotifyRecorder.stop(false);
             }
+            mBleGattClientProxy.close();
+            return;
+        }
+
+        isSuc = false;
+        for (int retry = 0; retry < 3 && !isSuc; retry++) {
+            isSuc = setConnectInterval(itemPosition);
+        }
+
+        if (!isSuc) {
+            for (int count = 0; count < testCount; count++) {
+                mWriteNotifyRecorder.start();
+                mWriteNotifyRecorder.stop(false);
+            }
+            mBleGattClientProxy.close();
             return;
         }
 
@@ -205,7 +322,10 @@ public class TestActivity extends AppCompatActivity {
                 break;
             }
 
-            final byte[] bytes = new byte[]{0x01};
+            final byte[] bytes = new byte[1];
+            for (int i = 0; i < bytes.length; i++) {
+                bytes[i] = (byte) i;
+            }
             final AtomicInteger offset = new AtomicInteger(0);
             final AtomicBoolean fastFail = new AtomicBoolean(false);
 
@@ -222,9 +342,11 @@ public class TestActivity extends AppCompatActivity {
                     // check content
                     for (int i = 0; i < msg.length; i++) {
                         if (msg[i] != bytes[offset.get() + i]) {
+                            Log.e(TAG, "i: " + i + ", k: " + (offset.get() + i));
+                            Log.e(TAG, "msg: " + msg[i] + ", byte: " + bytes[offset.get() + i]);
                             fastFail.set(true);
                             semaphore.release();
-                            Log.e(TAG, "msg[i] != bytes[offset.get() + i]");
+                            break;
                         }
                     }
                     // check suc
@@ -251,7 +373,7 @@ public class TestActivity extends AppCompatActivity {
         mBleGattClientProxy.close();
     }
 
-    private void testWriteNotifyLargeRecorder(int testCount) {
+    private void testWriteNotifyLargeRecorder(int testCount, int itemPosition) {
         boolean isSuc = false;
         for (int retry = 0; retry < 3 && !isSuc; retry++) {
             updateProgressDialogTitle("Test Write and Notify Large(3/3) connect device and discover services " + (retry + 1) + " time");
@@ -267,6 +389,21 @@ public class TestActivity extends AppCompatActivity {
                 mWriteNotifyLargeRecorder.start();
                 mWriteNotifyLargeRecorder.stop(false);
             }
+            mBleGattClientProxy.close();
+            return;
+        }
+
+        isSuc = false;
+        for (int retry = 0; retry < 3 && !isSuc; retry++) {
+            isSuc = setConnectInterval(itemPosition);
+        }
+
+        if (!isSuc) {
+            for (int count = 0; count < testCount; count++) {
+                mWriteNotifyRecorder.start();
+                mWriteNotifyRecorder.stop(false);
+            }
+            mBleGattClientProxy.close();
             return;
         }
 
@@ -297,7 +434,7 @@ public class TestActivity extends AppCompatActivity {
                 break;
             }
 
-            final byte[] bytes = new byte[100];
+            final byte[] bytes = new byte[200];
             for (int i = 0; i < bytes.length; i++) {
                 bytes[i] = (byte) i;
             }
@@ -308,7 +445,6 @@ public class TestActivity extends AppCompatActivity {
             mBleGattClientProxy.registerCharacteristicNotification(gattNotifyCharacteristic, new BleGattClientProxy.OnCharacteristicNotificationListener() {
                 @Override
                 public void onCharacteristicNotification(byte[] msg) {
-                    Log.e("afunx", "onCharacteristicNotification() msg: " + HexUtils.bytes2HexString(msg));
                     // check length
                     if (offset.get() + msg.length > bytes.length) {
                         fastFail.set(true);
@@ -318,9 +454,11 @@ public class TestActivity extends AppCompatActivity {
                     // check content
                     for (int i = 0; i < msg.length; i++) {
                         if (msg[i] != bytes[offset.get() + i]) {
+                            Log.e(TAG, "i: " + i + ", k: " + (offset.get() + i));
+                            Log.e(TAG, "msg: " + msg[i] + ", byte: " + bytes[offset.get() + i]);
                             fastFail.set(true);
                             semaphore.release();
-                            Log.e(TAG, "msg[i] != bytes[offset.get() + i]");
+                            break;
                         }
                     }
                     // check suc
@@ -333,10 +471,11 @@ public class TestActivity extends AppCompatActivity {
 
             boolean isNotified = false;
             mWriteNotifyLargeRecorder.start();
-            mBleGattClientProxy.writeCharacteristicNoResponsePacket(gattWriteCharacteristic, bytes, 20, 5);
-
+            mBleGattClientProxy.writeCharacterisitcNoResponse2(gattWriteCharacteristic, bytes);
             try {
+                Log.e("afunx", "notify start");
                 isNotified = semaphore.tryAcquire(2000, TimeUnit.MILLISECONDS);
+                Log.e("afunx", "notify end " + isNotified);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
