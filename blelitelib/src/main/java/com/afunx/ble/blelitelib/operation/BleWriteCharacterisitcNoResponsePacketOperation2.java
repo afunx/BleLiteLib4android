@@ -66,9 +66,10 @@ public class BleWriteCharacterisitcNoResponsePacketOperation2 extends BleOperati
         final int size = mMsg.length;
         byte[] bytePacket;
         int count;
+        int retry = 0;
 
         mCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
-        for (int offset = 0; offset < size; offset += packetSize) {
+        for (int offset = 0; offset < size; offset += count) {
             sleep();
             if (offset + packetSize <= size) {
                 count = packetSize;
@@ -77,8 +78,24 @@ public class BleWriteCharacterisitcNoResponsePacketOperation2 extends BleOperati
             }
             bytePacket = Arrays.copyOfRange(mMsg, offset, offset + count);
             mCharacteristic.setValue(bytePacket);
-            mBluetoothGatt.writeCharacteristic(mCharacteristic);
-            BleLiteLog.i(TAG, "writeCharacteristic() " + HexUtils.bytes2HexString(bytePacket, 0, count));
+            boolean isWriteSuc = mBluetoothGatt.writeCharacteristic(mCharacteristic);
+            if (isWriteSuc) {
+                retry = 0;
+            } else {
+                ++retry;
+                if (retry > 3) {
+                    BleLiteLog.e(TAG, "writeCharacteristic() fail");
+                    return;
+                } else {
+                    offset -= count;
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            BleLiteLog.i(TAG, "writeCharacteristic() " + HexUtils.bytes2HexString(bytePacket, 0, count) + ", isWriteSuc: " + isWriteSuc);
             updateLastTimestamp();
         }
     }
