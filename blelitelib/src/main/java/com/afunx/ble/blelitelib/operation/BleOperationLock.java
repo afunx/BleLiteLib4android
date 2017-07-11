@@ -1,39 +1,35 @@
 package com.afunx.ble.blelitelib.operation;
 
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created by afunx on 13/12/2016.
  */
 
 public class BleOperationLock {
-    private final Object mLock = new Object();
+
+    private final Semaphore mSemaphore = new Semaphore(0);
     private volatile boolean mIsNotified = false;
 
-    //@GuardBy("mLock")
+    //@GuardBy("mSemaphore")
     void waitLock(long mills) {
-        synchronized (mLock) {
-            // check whether mIsNotified is set before waitLock
-            if (!mIsNotified) {
-                try {
-                    mLock.wait(mills);
-                } catch (InterruptedException ignore) {
-                }
-            }
+        try {
+            mSemaphore.tryAcquire(1, mills, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
-    //@GuardBy("mLock")
+    //@GuardBy("mSemaphore")
     boolean isNotified() {
-        synchronized (mLock) {
-            return mIsNotified;
-        }
+        return mIsNotified;
     }
 
-    //@GuardBy("mLock")
+    //@GuardBy("mSemaphore")
     void notifyLock() {
-        synchronized (mLock) {
-            mIsNotified = true;
-            mLock.notify();
-        }
+        mIsNotified = true;
+        mSemaphore.release();
     }
 
 }

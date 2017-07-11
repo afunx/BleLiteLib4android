@@ -33,8 +33,6 @@ public class BleCloseOperation extends BleOperationAbs {
             mIsClosed = true;
             if (mBluetoothGatt != null) {
                 mBluetoothGatt.close();
-                // wait 500 ms to let android close gatt
-                waitLock(500);
             }
         }
     }
