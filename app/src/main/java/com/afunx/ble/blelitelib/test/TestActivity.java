@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.support.v7.app.AlertDialog;
@@ -23,8 +24,11 @@ import com.afunx.ble.blelitelib.constant.Key;
 import com.afunx.ble.blelitelib.proxy.BleGattClientProxy;
 import com.afunx.ble.blelitelib.proxy.BleProxy;
 import com.afunx.ble.blelitelib.utils.BleUuidUtils;
+import com.afunx.ble.blelitelib.utils.HexUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
@@ -144,8 +148,23 @@ public class TestActivity extends AppCompatActivity {
             public void onClick(View v) {
                 try {
                     final int testCount = Integer.parseInt(mEdtTestCount.getText().toString());
+                    final AtomicBoolean isStop = new AtomicBoolean(false);
                     mProgressDialog.setTitle("Test starting...");
                     mProgressDialog.show();
+//                    mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+//                        @Override
+//                        public void onCancel(DialogInterface dialog) {
+//                            isStop.set(true);
+//                            showTestResult();
+//                        }
+//                    });
+//                    mProgressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+//                        @Override
+//                        public void onDismiss(DialogInterface dialog) {
+//                            isStop.set(true);
+//                            showTestResult();
+//                        }
+//                    });
                     new Thread() {
                         @Override
                         public void run() {
@@ -156,11 +175,17 @@ public class TestActivity extends AppCompatActivity {
 
                             int itemPosition = mSpinnerConnectInterval.getSelectedItemPosition();
 
+//                            while (!isStop.get()) {
+//                                int testCount2 = 30;
+//                                testConnectAndDiscoverServices(testCount2);
+//                                testWriteNotify(testCount2, itemPosition);
+//                                testWriteNotifyLargeRecorder(testCount2, itemPosition);
+//                            }
+//                            dismissProgressDialog();
                             testConnectAndDiscoverServices(testCount);
                             testWriteNotify(testCount, itemPosition);
                             testWriteNotifyLargeRecorder(testCount, itemPosition);
                             showTestResult();
-                            dismissProgressDialog();
                         }
                     }.start();
                     setEnabledConfirmBtn(false);
@@ -338,6 +363,7 @@ public class TestActivity extends AppCompatActivity {
                         fastFail.set(true);
                         semaphore.release();
                         Log.e(TAG, "offset.get() + msg.length > bytes.length");
+                        return;
                     }
                     // check content
                     for (int i = 0; i < msg.length; i++) {
@@ -346,7 +372,7 @@ public class TestActivity extends AppCompatActivity {
                             Log.e(TAG, "msg: " + msg[i] + ", byte: " + bytes[offset.get() + i]);
                             fastFail.set(true);
                             semaphore.release();
-                            break;
+                            return;
                         }
                     }
                     // check suc
@@ -354,6 +380,7 @@ public class TestActivity extends AppCompatActivity {
                     if (offset.get() == bytes.length) {
                         semaphore.release();
                     }
+                    Log.w("afunx", "offset.get() " + offset.get());
                 }
             });
 
@@ -445,11 +472,13 @@ public class TestActivity extends AppCompatActivity {
             mBleGattClientProxy.registerCharacteristicNotification(gattNotifyCharacteristic, new BleGattClientProxy.OnCharacteristicNotificationListener() {
                 @Override
                 public void onCharacteristicNotification(byte[] msg) {
+                    Log.e("afunx", "onCharacteristicNotification() msg: " + HexUtils.bytes2HexString(msg));
                     // check length
                     if (offset.get() + msg.length > bytes.length) {
                         fastFail.set(true);
                         semaphore.release();
                         Log.e(TAG, "offset.get() + msg.length > bytes.length");
+                        return;
                     }
                     // check content
                     for (int i = 0; i < msg.length; i++) {
@@ -458,7 +487,7 @@ public class TestActivity extends AppCompatActivity {
                             Log.e(TAG, "msg: " + msg[i] + ", byte: " + bytes[offset.get() + i]);
                             fastFail.set(true);
                             semaphore.release();
-                            break;
+                            return;
                         }
                     }
                     // check suc
@@ -474,7 +503,7 @@ public class TestActivity extends AppCompatActivity {
             mBleGattClientProxy.writeCharacterisitcNoResponse2(gattWriteCharacteristic, bytes);
             try {
                 Log.e("afunx", "notify start");
-                isNotified = semaphore.tryAcquire(2000, TimeUnit.MILLISECONDS);
+                isNotified = semaphore.tryAcquire(4000, TimeUnit.MILLISECONDS);
                 Log.e("afunx", "notify end " + isNotified);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -486,7 +515,12 @@ public class TestActivity extends AppCompatActivity {
     }
 
     private void showTestResult() {
-        final String connectResult = mConnectRecorder.finish(mPhoneModel);
+        String version = getString(R.string.app_version);
+        long time=System.currentTimeMillis();
+        SimpleDateFormat format=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date=new Date(time);
+        String timestamp=format.format(date);
+        final String connectResult = mConnectRecorder.finish(timestamp + "\n" + version + "\n" + mPhoneModel);
         final String discoverServicesResult = mDiscoverServicesRecorder.finish(null);
         final String writeNotifyResult = mWriteNotifyRecorder.finish(null);
         final String writeNotifyLargeResult = mWriteNotifyLargeRecorder.finish(null);

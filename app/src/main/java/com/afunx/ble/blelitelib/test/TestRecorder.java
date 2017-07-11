@@ -129,7 +129,7 @@ public class TestRecorder {
             sb.append("\n");
         }
 
-        if (_startCount != _stopCount) {
+        if (_startCount != _stopCount && _startCount - _stopCount != 1) {
             sb.append(log(("startCount: " + _startCount + ", stopCount: " + _stopCount + ", they should be equal")));
             sb.append("\n");
             return sb.toString();
