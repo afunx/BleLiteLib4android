@@ -357,7 +357,10 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
             // register
             register(connectOperation);
         } else {
-            throw new IllegalStateException("call close() before call connect(String, long) once more");
+//            throw new IllegalStateException("call close() before call connect(String, long) once more");
+            // it will occur in rarely case, we can't throw IllegalStateException
+            BleLiteLog.w(TAG, "__connect() close old connection, it should't appear frequently.");
+            __close();
         }
         // execute operation
         long startTimestamp = System.currentTimeMillis();
