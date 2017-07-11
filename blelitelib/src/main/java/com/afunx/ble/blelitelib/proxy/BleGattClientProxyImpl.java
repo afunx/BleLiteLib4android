@@ -634,7 +634,7 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
             }
             BleCloseOperation closeOperation = BleCloseOperation.createInstance(bluetoothGatt);
             // execute operation
-            closeOperation.doRunnableSelfAsync(false);
+            closeOperation.run();
             BleLiteLog.i(TAG, "__close() closed");
         } else {
             BleLiteLog.i(TAG, "__close() it is closed already");
