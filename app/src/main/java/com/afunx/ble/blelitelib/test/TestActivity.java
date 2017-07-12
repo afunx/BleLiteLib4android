@@ -16,11 +16,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afunx.ble.blelitelib.app.R;
 import com.afunx.ble.blelitelib.constant.Key;
+import com.afunx.ble.blelitelib.mail.MailUtils;
 import com.afunx.ble.blelitelib.proxy.BleGattClientProxy;
 import com.afunx.ble.blelitelib.proxy.BleProxy;
 import com.afunx.ble.blelitelib.utils.BleUuidUtils;
@@ -52,6 +54,9 @@ public class TestActivity extends AppCompatActivity {
     private Button mBtnConfirm1;
     private Button mBtnConfirm2;
     private Spinner mSpinnerConnectInterval;
+    private Switch mSwitchSendEmail;
+    private EditText mEdtEmailAddr;
+    private EditText mEdtEmailPasswd;
 
     private String mPhoneModel;
 
@@ -142,6 +147,10 @@ public class TestActivity extends AppCompatActivity {
 
         mSpinnerConnectInterval = (Spinner) findViewById(R.id.spinner_connect_interval);
 
+        mSwitchSendEmail = (Switch) findViewById(R.id.switch_send_email);
+        mEdtEmailAddr = (EditText) findViewById(R.id.edt_email_account);
+        mEdtEmailPasswd = (EditText) findViewById(R.id.edt_email_passwd);
+
         mBtnConfirm1 = (Button) findViewById(R.id.btn_start_test1);
         mBtnConfirm1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -165,6 +174,11 @@ public class TestActivity extends AppCompatActivity {
 //                            showTestResult();
 //                        }
 //                    });
+
+                    final boolean isEmailSent = mSwitchSendEmail.isChecked();
+                    final String emailAddr = mEdtEmailAddr.getText().toString();
+                    final String emailPasswd = mEdtEmailPasswd.getText().toString();
+
                     new Thread() {
                         @Override
                         public void run() {
@@ -182,10 +196,15 @@ public class TestActivity extends AppCompatActivity {
 //                                testWriteNotifyLargeRecorder(testCount2, itemPosition);
 //                            }
 //                            dismissProgressDialog();
+
                             testConnectAndDiscoverServices(testCount);
                             testWriteNotify(testCount, itemPosition);
                             testWriteNotifyLargeRecorder(testCount, itemPosition);
-                            showTestResult();
+                            boolean sentSuc = isEmailSent;
+                            if (sentSuc) {
+                                sentSuc = sendEmail(emailAddr, emailPasswd);
+                            }
+                            showTestResult(sentSuc);
                         }
                     }.start();
                     setEnabledConfirmBtn(false);
@@ -514,12 +533,41 @@ public class TestActivity extends AppCompatActivity {
         mBleGattClientProxy.close();
     }
 
-    private void showTestResult() {
+    private boolean sendEmail(String emailAddr, String emailPasswd) {
+        boolean isSentSuc = false;
+        for (int retry = 0; !isSentSuc && retry < 3; retry++) {
+            if (retry > 0) {
+                try {
+                    Thread.sleep(10 * 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            updateProgressDialogTitle("send email " + (retry + 1) + " time");
+            String version = getString(R.string.app_version);
+            long time = System.currentTimeMillis();
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date date = new Date(time);
+            String timestamp = format.format(date);
+            final String connectResult = mConnectRecorder.finish(timestamp + "\n" + version + "\n" + mPhoneModel);
+            final String discoverServicesResult = mDiscoverServicesRecorder.finish(null);
+            final String writeNotifyResult = mWriteNotifyRecorder.finish(null);
+            final String writeNotifyLargeResult = mWriteNotifyLargeRecorder.finish(null);
+            final String emailMessage = connectResult + discoverServicesResult + writeNotifyResult + writeNotifyLargeResult;
+            isSentSuc = MailUtils.sendEmail(emailAddr, emailPasswd, emailAddr, mPhoneModel + timestamp, emailMessage);
+        }
+        return isSentSuc;
+    }
+
+    private void showTestResult(boolean isEmailSent) {
         String version = getString(R.string.app_version);
-        long time=System.currentTimeMillis();
-        SimpleDateFormat format=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date date=new Date(time);
-        String timestamp=format.format(date);
+        long time = System.currentTimeMillis();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date(time);
+        String timestamp = format.format(date);
+
+        final String emailSentResult = (isEmailSent ? "send email suc" : "send eamil fail or not sent") + "\n";
+
         final String connectResult = mConnectRecorder.finish(timestamp + "\n" + version + "\n" + mPhoneModel);
         final String discoverServicesResult = mDiscoverServicesRecorder.finish(null);
         final String writeNotifyResult = mWriteNotifyRecorder.finish(null);
@@ -530,7 +578,7 @@ public class TestActivity extends AppCompatActivity {
             public void run() {
                 View view = getLayoutInflater().inflate(R.layout.textview_log, null);
                 TextView textView = (TextView) view.findViewById(R.id.content);
-                textView.setText(connectResult + discoverServicesResult + writeNotifyResult + writeNotifyLargeResult);
+                textView.setText(emailSentResult + connectResult + discoverServicesResult + writeNotifyResult + writeNotifyLargeResult);
 
                 AlertDialog alertDialog = new AlertDialog.Builder(TestActivity.this).setView(view).show();
                 alertDialog.setCanceledOnTouchOutside(false);
