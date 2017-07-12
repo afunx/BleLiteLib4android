@@ -53,12 +53,14 @@ public class TestActivity extends AppCompatActivity {
     private EditText mEdtTestCount;
     private Button mBtnConfirm1;
     private Button mBtnConfirm2;
+    private Button mBtnConfirm3;
     private Spinner mSpinnerConnectInterval;
     private Switch mSwitchSendEmail;
     private EditText mEdtEmailAddr;
     private EditText mEdtEmailPasswd;
 
     private String mPhoneModel;
+    private AtomicBoolean mIsStop = new AtomicBoolean(false);
 
     private static final UUID GATT_WRITE_SERVICE_UUID = BleUuidUtils.int2uuid(0xffe5);
 
@@ -80,6 +82,9 @@ public class TestActivity extends AppCompatActivity {
             @Override
             public void run() {
                 mProgressDialog.setTitle(title);
+                if (!mProgressDialog.isShowing()) {
+                    mProgressDialog.show();
+                }
             }
         });
     }
@@ -98,6 +103,8 @@ public class TestActivity extends AppCompatActivity {
             @Override
             public void run() {
                 mBtnConfirm1.setEnabled(enabled);
+                mBtnConfirm2.setEnabled(enabled);
+                mBtnConfirm3.setEnabled(enabled);
             }
         });
     }
@@ -155,25 +162,10 @@ public class TestActivity extends AppCompatActivity {
         mBtnConfirm1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mIsStop.set(false);
                 try {
                     final int testCount = Integer.parseInt(mEdtTestCount.getText().toString());
-                    final AtomicBoolean isStop = new AtomicBoolean(false);
                     mProgressDialog.setTitle("Test starting...");
-                    mProgressDialog.show();
-//                    mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-//                        @Override
-//                        public void onCancel(DialogInterface dialog) {
-//                            isStop.set(true);
-//                            showTestResult();
-//                        }
-//                    });
-//                    mProgressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-//                        @Override
-//                        public void onDismiss(DialogInterface dialog) {
-//                            isStop.set(true);
-//                            showTestResult();
-//                        }
-//                    });
 
                     final boolean isEmailSent = mSwitchSendEmail.isChecked();
                     final String emailAddr = mEdtEmailAddr.getText().toString();
@@ -189,25 +181,40 @@ public class TestActivity extends AppCompatActivity {
 
                             int itemPosition = mSpinnerConnectInterval.getSelectedItemPosition();
 
-//                            while (!isStop.get()) {
-//                                int testCount2 = 30;
-//                                testConnectAndDiscoverServices(testCount2);
-//                                testWriteNotify(testCount2, itemPosition);
-//                                testWriteNotifyLargeRecorder(testCount2, itemPosition);
-//                            }
-//                            dismissProgressDialog();
-
-                            testConnectAndDiscoverServices(testCount);
-                            testWriteNotify(testCount, itemPosition);
-                            testWriteNotifyLargeRecorder(testCount, itemPosition);
-                            boolean sentSuc = isEmailSent;
-                            if (sentSuc) {
-                                sentSuc = sendEmail(emailAddr, emailPasswd);
+                            if (!mIsStop.get()) {
+                                testConnectAndDiscoverServices(testCount);
                             }
-                            showTestResult(sentSuc);
+                            if (!mIsStop.get()) {
+                                testWriteNotify(testCount, itemPosition);
+                            }
+                            if (!mIsStop.get()) {
+                                testWriteNotifyLargeRecorder(testCount, itemPosition);
+                            }
+                            dismissProgressDialog();
                         }
                     }.start();
                     setEnabledConfirmBtn(false);
+                    mProgressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                            if (mIsStop.get()) {
+                                return;
+                            }
+                            mIsStop.set(true);
+                            updateProgressDialogTitle("Please wait test stop...");
+                            new Thread() {
+                                @Override
+                                public void run() {
+                                    boolean sentSuc = isEmailSent;
+                                    if (sentSuc) {
+                                        sentSuc = sendEmail(emailAddr, emailPasswd);
+                                        dismissProgressDialog();
+                                    }
+                                    showTestResult(sentSuc);
+                                }
+                            }.start();
+                        }
+                    });
                 } catch (NumberFormatException e) {
                     Toast.makeText(TestActivity.this, "请输入一个正整数", Toast.LENGTH_LONG).show();
                 }
@@ -219,20 +226,92 @@ public class TestActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mProgressDialog.setTitle("Test starting...");
-                mProgressDialog.show();
                 new Thread() {
                     @Override
                     public void run() {
+                        mIsStop.set(false);
                         testReceiver();
                     }
                 }.start();
+                mProgressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        mBleGattClientProxy.unregisterCharacteristicNotification(GATT_NOTIFY_PROPERTY_UUID);
+                    }
+                });
+            }
+        });
+
+        mBtnConfirm3 = (Button) findViewById(R.id.btn_start_test3);
+        mBtnConfirm3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mIsStop.set(false);
+                try {
+                    final int testCount = Integer.parseInt(mEdtTestCount.getText().toString());
+                    mProgressDialog.setTitle("Test starting...");
+
+                    final boolean isEmailSent = mSwitchSendEmail.isChecked();
+                    final String emailAddr = mEdtEmailAddr.getText().toString();
+                    final String emailPasswd = mEdtEmailPasswd.getText().toString();
+
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            mConnectRecorder = new TestRecorder("Connect");
+                            mDiscoverServicesRecorder = new TestRecorder("DiscoverService");
+                            mWriteNotifyRecorder = new TestRecorder("WriteNotify");
+                            mWriteNotifyLargeRecorder = new TestRecorder("WriteLargeNotify");
+
+                            int itemPosition = mSpinnerConnectInterval.getSelectedItemPosition();
+
+                            while (!mIsStop.get()) {
+                                if (!mIsStop.get()) {
+                                    testConnectAndDiscoverServices(testCount);
+                                }
+                                if (!mIsStop.get()) {
+                                    testWriteNotify(testCount, itemPosition);
+                                }
+                                if (!mIsStop.get()) {
+                                    testWriteNotifyLargeRecorder(testCount, itemPosition);
+                                }
+                            }
+                            dismissProgressDialog();
+                        }
+                    }.start();
+                    setEnabledConfirmBtn(false);
+
+                    mProgressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                            if (mIsStop.get()) {
+                                return;
+                            }
+                            mIsStop.set(true);
+                            updateProgressDialogTitle("Please wait test stop...");
+                            new Thread() {
+                                @Override
+                                public void run() {
+                                    boolean sentSuc = isEmailSent;
+                                    if (sentSuc) {
+                                        sentSuc = sendEmail(emailAddr, emailPasswd);
+                                    }
+                                    dismissProgressDialog();
+                                    showTestResult(sentSuc);
+                                }
+                            }.start();
+                        }
+                    });
+                } catch (NumberFormatException e) {
+                    Toast.makeText(TestActivity.this, "请输入一个正整数", Toast.LENGTH_LONG).show();
+                }
             }
         });
     }
 
     private void testReceiver() {
         boolean isSuc = false;
-        for (int retry = 0; retry < 3 && !isSuc; retry++) {
+        for (int retry = 0; retry < 3 && !isSuc && !mIsStop.get(); retry++) {
             updateProgressDialogTitle("Connecting");
             isSuc = mBleGattClientProxy.connect(mBluetoothDevice.getAddress(), 30 * 1000);
             if (isSuc) {
@@ -242,7 +321,7 @@ public class TestActivity extends AppCompatActivity {
             }
         }
 
-        if (!isSuc) {
+        if (!isSuc && !mIsStop.get()) {
             updateProgressDialogTitle("connect fail or discover services fail");
             mBleGattClientProxy.close();
             return;
@@ -288,7 +367,7 @@ public class TestActivity extends AppCompatActivity {
     }
 
     private void testConnectAndDiscoverServices(int testCount) {
-        for (int count = 0; count < testCount; count++) {
+        for (int count = 0; count < testCount && !mIsStop.get(); count++) {
             updateProgressDialogTitle("Test Connect and Discover Services(1/3) "
                     + (count + 1) + " time" + " (total: " + testCount + " time)");
             // connect test
@@ -307,7 +386,7 @@ public class TestActivity extends AppCompatActivity {
 
     private void testWriteNotify(int testCount, int itemPosition) {
         boolean isSuc = false;
-        for (int retry = 0; retry < 3 && !isSuc; retry++) {
+        for (int retry = 0; retry < 3 && !isSuc && !mIsStop.get(); retry++) {
             updateProgressDialogTitle("Test Write and Notify(2/3) connect device and discover services " + (retry + 1) + " time");
             isSuc = mBleGattClientProxy.connect(mBluetoothDevice.getAddress(), 30 * 1000);
             if (isSuc) {
@@ -317,7 +396,7 @@ public class TestActivity extends AppCompatActivity {
         }
 
         if (!isSuc) {
-            for (int count = 0; count < testCount; count++) {
+            for (int count = 0; count < testCount && !mIsStop.get(); count++) {
                 mWriteNotifyRecorder.start();
                 mWriteNotifyRecorder.stop(false);
             }
@@ -339,7 +418,7 @@ public class TestActivity extends AppCompatActivity {
             return;
         }
 
-        for (int count = 0; count < testCount; count++) {
+        for (int count = 0; count < testCount && !mIsStop.get(); count++) {
             updateProgressDialogTitle("Test Write and Notify(2/3) "
                     + (count + 1) + " time" + " (total: " + testCount + " time)");
 
@@ -421,7 +500,7 @@ public class TestActivity extends AppCompatActivity {
 
     private void testWriteNotifyLargeRecorder(int testCount, int itemPosition) {
         boolean isSuc = false;
-        for (int retry = 0; retry < 3 && !isSuc; retry++) {
+        for (int retry = 0; retry < 3 && !isSuc && !mIsStop.get(); retry++) {
             updateProgressDialogTitle("Test Write and Notify Large(3/3) connect device and discover services " + (retry + 1) + " time");
             isSuc = mBleGattClientProxy.connect(mBluetoothDevice.getAddress(), 30 * 1000);
             if (isSuc) {
@@ -431,7 +510,7 @@ public class TestActivity extends AppCompatActivity {
         }
 
         if (!isSuc) {
-            for (int count = 0; count < testCount; count++) {
+            for (int count = 0; count < testCount && !mIsStop.get(); count++) {
                 mWriteNotifyLargeRecorder.start();
                 mWriteNotifyLargeRecorder.stop(false);
             }
@@ -440,12 +519,12 @@ public class TestActivity extends AppCompatActivity {
         }
 
         isSuc = false;
-        for (int retry = 0; retry < 3 && !isSuc; retry++) {
+        for (int retry = 0; retry < 3 && !isSuc && !mIsStop.get(); retry++) {
             isSuc = setConnectInterval(itemPosition);
         }
 
         if (!isSuc) {
-            for (int count = 0; count < testCount; count++) {
+            for (int count = 0; count < testCount && !mIsStop.get(); count++) {
                 mWriteNotifyRecorder.start();
                 mWriteNotifyRecorder.stop(false);
             }
@@ -453,7 +532,7 @@ public class TestActivity extends AppCompatActivity {
             return;
         }
 
-        for (int count = 0; count < testCount; count++) {
+        for (int count = 0; count < testCount && !mIsStop.get(); count++) {
             updateProgressDialogTitle("Test Write and Notify Large(3/3) "
                     + (count + 1) + " time" + " (total: " + testCount + " time)");
 

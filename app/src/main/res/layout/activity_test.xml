@@ -92,6 +92,12 @@
         android:text="开始测试（多项测试）" />
 
     <Button
+        android:id="@+id/btn_start_test3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="开始测试（压力测试）" />
+
+    <Button
         android:id="@+id/btn_start_test2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
