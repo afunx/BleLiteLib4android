@@ -77,7 +77,7 @@
             android:layout_weight="1"
             android:hint="邮箱密码"
             android:inputType="textPassword"
-            android:text="abcd1234" />
+            android:text="1234abcd" />
 
     </LinearLayout>
 

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">BleLiteLibSimple</string>
-    <string name="app_version">Ble Test Tool v0.8.2</string>
-    <string name="title_activity_scan">Ble测试工具v0.8.2</string>
+    <string name="app_version">Ble Test Tool v0.8.3</string>
+    <string name="title_activity_scan">Ble测试工具v0.8.3</string>
     <string name="title_activity_service_list">服务列表</string>
     <string name="title_activity_property_list">属性列表</string>
 
