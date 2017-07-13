@@ -23,6 +23,7 @@ import com.afunx.ble.blelitelib.operation.BleRequestMtuOperation;
 import com.afunx.ble.blelitelib.operation.BleWriteCharacterisitcNoResponsePacketOperation;
 import com.afunx.ble.blelitelib.operation.BleWriteCharacterisitcNoResponsePacketOperation2;
 import com.afunx.ble.blelitelib.operation.BleWriteCharacteristicNoResponse20Operation;
+import com.afunx.ble.blelitelib.operation.BleWriteCharacteristicNoResponseInterruptOperation;
 import com.afunx.ble.blelitelib.operation.BleWriteCharacteristicNoResponseOperation;
 import com.afunx.ble.blelitelib.operation.BleWriteCharacteristicOperation;
 import com.afunx.ble.blelitelib.operation.BleWriteDescriptorOperation;
@@ -327,6 +328,11 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
     }
 
     @Override
+    public boolean writeCharacteristicNoResponsePreemptible(@NonNull BluetoothGattCharacteristic gattCharacteristic, @NonNull byte[] msg) {
+        return __writeCharacteristicNoResponsePreemptible(gattCharacteristic, msg);
+    }
+
+    @Override
     public boolean registerCharacteristicNotification(@NonNull BluetoothGattCharacteristic characteristic, OnCharacteristicNotificationListener listener) {
         return __registerCharacteristicNotification(characteristic, listener);
     }
@@ -567,6 +573,20 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         boolean isWriteCharacteristicNoResponseSuc = true;
 //        BleLiteLog.i(TAG, "__writeCharacteristicNoResponsePacket() msg: " + HexUtils.bytes2HexString(msg) + " suc: " + isWriteCharacteristicNoResponseSuc);
         return isWriteCharacteristicNoResponseSuc;
+    }
+
+    private boolean __writeCharacteristicNoResponsePreemptible(BluetoothGattCharacteristic gattCharacteristic, byte[] msg) {
+        final BluetoothGatt bluetoothGatt = getBluetoothGatt();
+        if (bluetoothGatt == null) {
+            BleLiteLog.w(TAG, "__writeCharacteristicNoResponsePreemptible() fail for bluetoothGatt is null");
+            return false;
+        }
+        // create operation
+        BleWriteCharacteristicNoResponseInterruptOperation writeCharacteristicNoResponseInterruptOperation = BleWriteCharacteristicNoResponseInterruptOperation.createInstance(bluetoothGatt, gattCharacteristic, msg);
+        int code = (int) writeCharacteristicNoResponseInterruptOperation.getOperatcionCode();
+        writeCharacteristicNoResponseInterruptOperation.doRunnableSelfAsyncInterruptable(code);
+        boolean isWriteCharacteristicNoResponseInterruptSuc = true;
+        return isWriteCharacteristicNoResponseInterruptSuc;
     }
 
     private boolean __writeDescriptor(final BluetoothGattDescriptor descriptor, final byte[] msg, long timeout) {
