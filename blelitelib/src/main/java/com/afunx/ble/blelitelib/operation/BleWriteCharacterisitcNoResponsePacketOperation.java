@@ -70,7 +70,7 @@ public class BleWriteCharacterisitcNoResponsePacketOperation extends BleOperatio
     }
 
     @Override
-    public long getOperatcionCode() {
+    public int getOperatcionCode() {
         return BLE_WRITE_CHARACTERISITC_NO_RESPONSE_PACKET;
     }
 }

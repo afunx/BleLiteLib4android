@@ -36,7 +36,7 @@ public class BleWriteCharacteristicOperation extends BleOperationAbs {
     }
 
     @Override
-    public long getOperatcionCode() {
+    public int getOperatcionCode() {
         return BLE_WRITE_CHARACTERISTIC;
     }
 }

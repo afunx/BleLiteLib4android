@@ -3,11 +3,14 @@ package com.afunx.ble.blelitelib.operation;
 import android.bluetooth.BluetoothGattCallback;
 import android.os.Looper;
 import android.util.LongSparseArray;
+import android.util.SparseArray;
 
 import com.afunx.ble.blelitelib.connector.BleConnector;
 import com.afunx.ble.blelitelib.log.BleLiteLog;
 import com.afunx.ble.blelitelib.proxy.BleGattClientProxy;
 import com.afunx.ble.blelitelib.threadpool.BleThreadpool;
+
+import java.util.concurrent.Future;
 
 /**
  * Created by afunx on 13/12/2016.
@@ -24,6 +27,8 @@ public abstract class BleOperationAbs<T> implements BleOperation {
     private volatile BleGattClientProxy mOwner;
     private volatile BleConnector mConnector;
     private volatile BluetoothGattCallback mBluetoothGattCallback;
+
+    private static final SparseArray<Future<?>> mInterruptableTasks = new SparseArray<>();
 
     /**
      * <K,V> for <Long, Runnable> implement by LongSparseArray
@@ -85,6 +90,24 @@ public abstract class BleOperationAbs<T> implements BleOperation {
             sThreadpool.submitInMain(this);
         } else {
             sThreadpool.submit(this);
+        }
+    }
+
+    public final void doRunnableSelfAsyncInterruptable(int code) {
+        if (Looper.getMainLooper() == Looper.myLooper()) {
+            throw new IllegalStateException("It can't be called in UI Main Thread.");
+        }
+        if (this instanceof BleInterruptable) {
+            synchronized (mInterruptableTasks) {
+                Future<?> oldFuture = mInterruptableTasks.get(code);
+                if (oldFuture != null) {
+                    oldFuture.cancel(true);
+                }
+                Future<?> future = sThreadpool.submit(this);
+                mInterruptableTasks.put(code, future);
+            }
+        } else {
+            throw new IllegalArgumentException("Only BleInterruptable could call the method.");
         }
     }
 

@@ -45,7 +45,7 @@ public class BleConnectOperation extends BleOperationAbs {
     }
 
     @Override
-    public long getOperatcionCode() {
+    public int getOperatcionCode() {
         return BLE_CONNECT;
     }
 

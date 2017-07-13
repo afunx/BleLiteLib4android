@@ -38,7 +38,7 @@ public class BleWriteDescriptorOperation extends BleOperationAbs {
     }
 
     @Override
-    public long getOperatcionCode() {
+    public int getOperatcionCode() {
         return BLE_WRITE_DESCRIPTOR;
     }
 

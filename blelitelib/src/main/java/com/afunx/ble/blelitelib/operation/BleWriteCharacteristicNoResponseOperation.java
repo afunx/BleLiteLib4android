@@ -53,7 +53,7 @@ public class BleWriteCharacteristicNoResponseOperation extends BleOperationAbs {
     }
 
     @Override
-    public long getOperatcionCode() {
+    public int getOperatcionCode() {
         return BLE_WRITE_CHARACTERISTIC_NO_RESPONSE;
     }
 }

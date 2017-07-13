@@ -38,7 +38,7 @@ public class BleCloseOperation extends BleOperationAbs {
     }
 
     @Override
-    public long getOperatcionCode() {
+    public int getOperatcionCode() {
         return BLE_CLOSE;
     }
 }

@@ -30,7 +30,7 @@ public class BleDiscoverServiceOperation extends BleOperationAbs {
     }
 
     @Override
-    public long getOperatcionCode() {
+    public int getOperatcionCode() {
         return BLE_DISCOVER_SERVICE;
     }
 }
