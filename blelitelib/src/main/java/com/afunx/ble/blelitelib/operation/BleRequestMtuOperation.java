@@ -35,7 +35,7 @@ public class BleRequestMtuOperation extends BleOperationAbs {
     }
 
     @Override
-    public long getOperatcionCode() {
+    public int getOperatcionCode() {
         return BLE_REQUEST_MTU;
     }
 }

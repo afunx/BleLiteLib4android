@@ -120,7 +120,7 @@ public class BleWriteCharacteristicNoResponseInterruptOperation extends BleOpera
     }
 
     @Override
-    public long getOperatcionCode() {
+    public int getOperatcionCode() {
         return BLE_WRITE_CHARACTERISTIC_NO_RESPONSE_INTERRUPT;
     }
 }

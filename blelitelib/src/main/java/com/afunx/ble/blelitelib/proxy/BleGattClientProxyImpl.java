@@ -583,7 +583,7 @@ public class BleGattClientProxyImpl implements BleGattClientProxy {
         }
         // create operation
         BleWriteCharacteristicNoResponseInterruptOperation writeCharacteristicNoResponseInterruptOperation = BleWriteCharacteristicNoResponseInterruptOperation.createInstance(bluetoothGatt, gattCharacteristic, msg);
-        int code = (int) writeCharacteristicNoResponseInterruptOperation.getOperatcionCode();
+        int code = writeCharacteristicNoResponseInterruptOperation.getOperatcionCode();
         writeCharacteristicNoResponseInterruptOperation.doRunnableSelfAsyncInterruptable(code);
         boolean isWriteCharacteristicNoResponseInterruptSuc = true;
         return isWriteCharacteristicNoResponseInterruptSuc;

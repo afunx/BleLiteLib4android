@@ -33,7 +33,7 @@ public class BleReadCharacteristicOperation extends BleOperationAbs<byte[]> {
     }
 
     @Override
-    public long getOperatcionCode() {
+    public int getOperatcionCode() {
         return BLE_READ_CHARACTERISTIC;
     }
 }
