@@ -3,12 +3,13 @@ package com.afunx.ble.blelitelib.operation;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.afunx.ble.blelitelib.log.BleLiteLog;
 import com.afunx.ble.blelitelib.utils.HexUtils;
 
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -27,8 +28,27 @@ public class BleWriteCharacteristicNoResponseInterruptOperation extends BleOpera
     private static final AtomicInteger mAutoId = new AtomicInteger(0);
     private static volatile long lastTimestamp = 0;
 
-    public static void setPacketIntervals(int[] packetIntervals) {
-        PACKET_INTERVALS = packetIntervals;
+    private static final Map<UUID, byte[][]> mBufferMap = new HashMap<>();
+
+    private static byte[][] getBuffer20(UUID uuid, int packetSize) {
+        /*
+         * buffer20 is multidimensional array to solve Ble only support 20 byte and avoid byte array fragmentization
+         */
+        byte[][] buffer20 = mBufferMap.get(uuid);
+        if (buffer20 == null) {
+            buffer20 = new byte[packetSize][];
+            for (int i = 0; i < buffer20.length; i++) {
+                buffer20[i] = new byte[i + 1];
+            }
+            mBufferMap.put(uuid, buffer20);
+        }
+        return buffer20;
+    }
+
+    private static byte[] getSendMessage(UUID uuid, int packetSize, byte[] bytes, int offset, int count) {
+        byte[][] buffer20 = getBuffer20(uuid, packetSize);
+        System.arraycopy(bytes, offset, buffer20[count - 1], 0, count);
+        return buffer20[count - 1];
     }
 
     public static BleWriteCharacteristicNoResponseInterruptOperation createInstance(@NonNull BluetoothGatt bluetoothGatt, @NonNull BluetoothGattCharacteristic characteristic, @NonNull byte[] msg) {
@@ -68,7 +88,6 @@ public class BleWriteCharacteristicNoResponseInterruptOperation extends BleOpera
 
     @Override
     public void run() {
-        final int packetSize = PACKET_SIZE;
         final int size = mMsg.length;
         byte[] bytePacket;
         int count;
@@ -87,12 +106,12 @@ public class BleWriteCharacteristicNoResponseInterruptOperation extends BleOpera
                     updateLastTimestamp();
                     break;
                 }
-                if (offset + packetSize <= size) {
-                    count = packetSize;
+                if (offset + PACKET_SIZE <= size) {
+                    count = PACKET_SIZE;
                 } else {
                     count = size - offset;
                 }
-                bytePacket = Arrays.copyOfRange(mMsg, offset, offset + count);
+                bytePacket = getSendMessage(mCharacteristic.getUuid(), PACKET_SIZE, mMsg, offset, count);
                 mCharacteristic.setValue(bytePacket);
                 boolean isWriteSuc = mBluetoothGatt.writeCharacteristic(mCharacteristic);
                 if (isWriteSuc) {
