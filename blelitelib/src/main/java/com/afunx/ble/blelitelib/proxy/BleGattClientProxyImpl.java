@@ -46,7 +46,7 @@ import java.util.UUID;
 public class BleGattClientProxyImpl implements BleGattClientProxy {
 
     private static final String TAG = "BleGattClientProxyImpl";
-    private static final String VERSION = "v0.9.4";
+    private static final String VERSION = "v0.9.5";
 
     private static final String UUID_CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR = "00002902-0000-1000-8000-00805f9b34fb";
 
