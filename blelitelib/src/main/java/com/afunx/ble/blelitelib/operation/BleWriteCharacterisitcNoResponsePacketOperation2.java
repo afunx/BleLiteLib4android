@@ -47,7 +47,7 @@ public class BleWriteCharacterisitcNoResponsePacketOperation2 extends BleOperati
 
     private static synchronized void sleep() {
         int select = mAutoId.getAndAdd(1) % PACKET_INTERVALS.length;
-        int sleepTime = PACKET_INTERVALS[select] - (int) (System.currentTimeMillis() - lastTimestamp);
+        int sleepTime = lastTimestamp == 0 ? 0 : PACKET_INTERVALS[select] - (int) (System.currentTimeMillis() - lastTimestamp);
         if (sleepTime > 0) {
             try {
                 Thread.sleep(sleepTime);
