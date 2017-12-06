@@ -62,13 +62,13 @@ public class TestActivity extends AppCompatActivity {
     private String mPhoneModel;
     private AtomicBoolean mIsStop = new AtomicBoolean(false);
 
-    private static final UUID GATT_WRITE_SERVICE_UUID = BleUuidUtils.int2uuid(0xffe5);
+    private static final UUID GATT_WRITE_SERVICE_UUID = BleUuidUtils.int2uuid(0x0001);
 
-    private static final UUID GATT_NOTIFY_SERVICE_UUID = BleUuidUtils.int2uuid(0xffe0);
+    private static final UUID GATT_NOTIFY_SERVICE_UUID = BleUuidUtils.int2uuid(0x0001);
 
-    private static final UUID GATT_WRITE_PROPERTY_UUID = BleUuidUtils.int2uuid(0xffe9);
+    private static final UUID GATT_WRITE_PROPERTY_UUID = BleUuidUtils.int2uuid(0x0002);
 
-    private static final UUID GATT_NOTIFY_PROPERTY_UUID = BleUuidUtils.int2uuid(0xffe4);
+    private static final UUID GATT_NOTIFY_PROPERTY_UUID = BleUuidUtils.int2uuid(0x0003);
 
     public static void startActivity(Context context, BluetoothDevice bluetoothDevice) {
         Intent intent = new Intent(context, TestActivity.class);
@@ -328,7 +328,7 @@ public class TestActivity extends AppCompatActivity {
         }
 
         // write notify test
-        BluetoothGattService gattWriteService = mBleGattClientProxy.discoverService(GATT_WRITE_SERVICE_UUID, 0);
+                                                        BluetoothGattService gattWriteService = mBleGattClientProxy.discoverService(GATT_WRITE_SERVICE_UUID, 0);
         if (gattWriteService == null) {
             updateProgressDialogTitle("connect fail or discover services fail 111");
             mBleGattClientProxy.close();
