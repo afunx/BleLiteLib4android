@@ -15,10 +15,11 @@ import java.util.UUID;
  */
 public class BleUuidUtils {
 
+//    6e400001-b5a3-f393-e0a9-e50e24dcca9e
     private final static int UUID_LENGTH = 36;
     // 6E400001-B5A3-F393-E0A9-E50E24DCCA9E
-    private volatile static String MAGIC_HEAD_STR = "0000";
-    private volatile static String MAGIC_TAIL_STR = "-0000-1000-8000-00805f9b34fb";
+    private volatile static String MAGIC_HEAD_STR = "6e40";
+    private volatile static String MAGIC_TAIL_STR = "-b5a3-f393-e0a9-e50e24dcca9e";
 
     /**
      * set ble magic header for
