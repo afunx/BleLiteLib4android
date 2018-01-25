@@ -1,6 +1,7 @@
 package com.afunx.ble.blelitelib.operation;
 
 import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.support.annotation.NonNull;
 
@@ -33,6 +34,9 @@ public class BleWriteDescriptorOperation extends BleOperationAbs {
 
     @Override
     public void run() {
+        // FIX BUG: 2018/01/25 NORDIC SET NOTIFY BUG IN SOME PHONES START
+        mDescriptor.getCharacteristic().setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+        // FIX BUG: 2018/01/25 NORDIC SET NOTIFY BUG IN SOME PHONES END
         mDescriptor.setValue(mMsg);
         mBluetoothGatt.writeDescriptor(mDescriptor);
     }
