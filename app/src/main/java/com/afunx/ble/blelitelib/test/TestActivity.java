@@ -62,13 +62,13 @@ public class TestActivity extends AppCompatActivity {
     private String mPhoneModel;
     private AtomicBoolean mIsStop = new AtomicBoolean(false);
 
-    private static final UUID GATT_WRITE_SERVICE_UUID = BleUuidUtils.int2uuid(0x0001);
+    private static final UUID GATT_WRITE_SERVICE_UUID = UUID.fromString("49535343-FE7D-4AE5-8FA9-9FAFD205E455");
 
-    private static final UUID GATT_NOTIFY_SERVICE_UUID = BleUuidUtils.int2uuid(0x0001);
+    private static final UUID GATT_NOTIFY_SERVICE_UUID = UUID.fromString("49535343-FE7D-4AE5-8FA9-9FAFD205E455");
 
-    private static final UUID GATT_WRITE_PROPERTY_UUID = BleUuidUtils.int2uuid(0x0002);
+    private static final UUID GATT_WRITE_PROPERTY_UUID = UUID.fromString("49535343-8841-43F4-A8D4-ECBE34729BB3");
 
-    private static final UUID GATT_NOTIFY_PROPERTY_UUID = BleUuidUtils.int2uuid(0x0003);
+    private static final UUID GATT_NOTIFY_PROPERTY_UUID = UUID.fromString("49535343-1E4D-4BD9-BA61-23C647249616");
 
     public static void startActivity(Context context, BluetoothDevice bluetoothDevice) {
         Intent intent = new Intent(context, TestActivity.class);
@@ -328,7 +328,7 @@ public class TestActivity extends AppCompatActivity {
         }
 
         // write notify test
-                                                        BluetoothGattService gattWriteService = mBleGattClientProxy.discoverService(GATT_WRITE_SERVICE_UUID, 0);
+        BluetoothGattService gattWriteService = mBleGattClientProxy.discoverService(GATT_WRITE_SERVICE_UUID, 0);
         if (gattWriteService == null) {
             updateProgressDialogTitle("connect fail or discover services fail 111");
             mBleGattClientProxy.close();
@@ -404,19 +404,19 @@ public class TestActivity extends AppCompatActivity {
             return;
         }
 
-        isSuc = false;
-        for (int retry = 0; retry < 3 && !isSuc; retry++) {
-            isSuc = setConnectInterval(itemPosition);
-        }
-
-        if (!isSuc) {
-            for (int count = 0; count < testCount; count++) {
-                mWriteNotifyRecorder.start();
-                mWriteNotifyRecorder.stop(false);
-            }
-            mBleGattClientProxy.close();
-            return;
-        }
+//        isSuc = false;
+//        for (int retry = 0; retry < 3 && !isSuc; retry++) {
+//            isSuc = setConnectInterval(itemPosition);
+//        }
+//
+//        if (!isSuc) {
+//            for (int count = 0; count < testCount; count++) {
+//                mWriteNotifyRecorder.start();
+//                mWriteNotifyRecorder.stop(false);
+//            }
+//            mBleGattClientProxy.close();
+//            return;
+//        }
 
         for (int count = 0; count < testCount && !mIsStop.get(); count++) {
             updateProgressDialogTitle("Test Write and Notify(2/3) "
@@ -518,19 +518,19 @@ public class TestActivity extends AppCompatActivity {
             return;
         }
 
-        isSuc = false;
-        for (int retry = 0; retry < 3 && !isSuc && !mIsStop.get(); retry++) {
-            isSuc = setConnectInterval(itemPosition);
-        }
-
-        if (!isSuc) {
-            for (int count = 0; count < testCount && !mIsStop.get(); count++) {
-                mWriteNotifyRecorder.start();
-                mWriteNotifyRecorder.stop(false);
-            }
-            mBleGattClientProxy.close();
-            return;
-        }
+//        isSuc = false;
+//        for (int retry = 0; retry < 3 && !isSuc && !mIsStop.get(); retry++) {
+//            isSuc = setConnectInterval(itemPosition);
+//        }
+//
+//        if (!isSuc) {
+//            for (int count = 0; count < testCount && !mIsStop.get(); count++) {
+//                mWriteNotifyRecorder.start();
+//                mWriteNotifyRecorder.stop(false);
+//            }
+//            mBleGattClientProxy.close();
+//            return;
+//        }
 
         for (int count = 0; count < testCount && !mIsStop.get(); count++) {
             updateProgressDialogTitle("Test Write and Notify Large(3/3) "
