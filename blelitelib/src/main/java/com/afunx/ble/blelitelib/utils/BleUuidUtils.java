@@ -98,9 +98,9 @@ public class BleUuidUtils {
      * @return int of uuid
      */
     public static int str2int(String uuid) {
-        if (uuid == null || uuid.length() != UUID_LENGTH || !uuid.endsWith(MAGIC_TAIL_STR)) {
-            throw new IllegalArgumentException("invalid uuid string");
-        }
+//        if (uuid == null || uuid.length() != UUID_LENGTH || !uuid.endsWith(MAGIC_TAIL_STR)) {
+//            throw new IllegalArgumentException("invalid uuid string");
+//        }
         String hexString = uuid.substring(4, 8);
         int value = Integer.parseInt(hexString, 16);
         return value;
