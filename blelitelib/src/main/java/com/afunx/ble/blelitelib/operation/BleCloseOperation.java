@@ -33,6 +33,11 @@ public class BleCloseOperation extends BleOperationAbs {
             mIsClosed = true;
             if (mBluetoothGatt != null) {
                 mBluetoothGatt.close();
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
