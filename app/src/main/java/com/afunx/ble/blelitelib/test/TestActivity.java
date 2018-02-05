@@ -29,7 +29,6 @@ import com.afunx.ble.blelitelib.utils.BleUuidUtils;
 import com.afunx.ble.blelitelib.utils.HexUtils;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -426,21 +425,25 @@ public class TestActivity extends AppCompatActivity {
             BluetoothGattService gattWriteService = mBleGattClientProxy.discoverService(GATT_WRITE_SERVICE_UUID, 0);
             if (gattWriteService == null) {
                 Log.e(TAG, "gattWriteService is null");
+                mWriteNotifyRecorder.start();
                 mWriteNotifyRecorder.stop(false);
                 break;
             }
             BluetoothGattCharacteristic gattWriteCharacteristic = mBleGattClientProxy.discoverCharacteristic(gattWriteService, GATT_WRITE_PROPERTY_UUID);
             if (gattWriteCharacteristic == null) {
+                mWriteNotifyRecorder.start();
                 mWriteNotifyRecorder.stop(false);
                 break;
             }
             BluetoothGattService gattNotifyService = mBleGattClientProxy.discoverService(GATT_NOTIFY_SERVICE_UUID, 0);
             if (gattNotifyService == null) {
+                mWriteNotifyRecorder.start();
                 mWriteNotifyRecorder.stop(false);
                 break;
             }
             BluetoothGattCharacteristic gattNotifyCharacteristic = mBleGattClientProxy.discoverCharacteristic(gattNotifyService, GATT_NOTIFY_PROPERTY_UUID);
             if (gattNotifyCharacteristic == null) {
+                mWriteNotifyRecorder.start();
                 mWriteNotifyRecorder.stop(false);
                 break;
             }
@@ -540,21 +543,25 @@ public class TestActivity extends AppCompatActivity {
             BluetoothGattService gattWriteService = mBleGattClientProxy.discoverService(GATT_WRITE_SERVICE_UUID, 0);
             if (gattWriteService == null) {
                 Log.e(TAG, "gattWriteService is null");
+                mWriteNotifyLargeRecorder.start();
                 mWriteNotifyLargeRecorder.stop(false);
                 break;
             }
             BluetoothGattCharacteristic gattWriteCharacteristic = mBleGattClientProxy.discoverCharacteristic(gattWriteService, GATT_WRITE_PROPERTY_UUID);
             if (gattWriteCharacteristic == null) {
+                mWriteNotifyLargeRecorder.start();
                 mWriteNotifyLargeRecorder.stop(false);
                 break;
             }
             BluetoothGattService gattNotifyService = mBleGattClientProxy.discoverService(GATT_NOTIFY_SERVICE_UUID, 0);
             if (gattNotifyService == null) {
+                mWriteNotifyLargeRecorder.start();
                 mWriteNotifyLargeRecorder.stop(false);
                 break;
             }
             BluetoothGattCharacteristic gattNotifyCharacteristic = mBleGattClientProxy.discoverCharacteristic(gattNotifyService, GATT_NOTIFY_PROPERTY_UUID);
             if (gattNotifyCharacteristic == null) {
+                mWriteNotifyLargeRecorder.start();
                 mWriteNotifyLargeRecorder.stop(false);
                 break;
             }
