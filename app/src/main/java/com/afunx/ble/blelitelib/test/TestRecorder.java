@@ -88,10 +88,10 @@ public class TestRecorder {
         mTestTarget = testTarget;
     }
 
-    private int _startCount;
-    private int _stopCount;
-    private int mFailCount;
-    private long mTestStartTimestamp;
+    private volatile int _startCount;
+    private volatile int _stopCount;
+    private volatile int mFailCount;
+    private volatile long mTestStartTimestamp;
     private List<Long> mTestConsumeList = new ArrayList<>();
 
     public void reset() {
@@ -103,13 +103,12 @@ public class TestRecorder {
     }
 
     public void start() {
-        log("start");
         mTestStartTimestamp = System.currentTimeMillis();
         ++_startCount;
+        log("start, startCount: " + _startCount);
     }
 
     public void stop(boolean isSuc) {
-        log("stop suc: " + isSuc);
         long testConsume = System.currentTimeMillis() - mTestStartTimestamp;
         ++_stopCount;
         if (isSuc) {
@@ -117,6 +116,7 @@ public class TestRecorder {
         } else {
             ++mFailCount;
         }
+        log("stop suc: " + isSuc + ", stopCount: " + _stopCount + ", failCount: " + mFailCount);
     }
 
     public String finish(String msg) {

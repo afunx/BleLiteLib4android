@@ -77,6 +77,7 @@ public class TestActivity extends AppCompatActivity {
 
     private void updateProgressDialogTitle(final String title) {
         Log.e("afunx", "updateProgressDialogTitle() title: " + title);
+        Log.e(TAG, "updateProgressDialogTitle() title: " + title);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -295,7 +296,7 @@ public class TestActivity extends AppCompatActivity {
                                     if (sentSuc) {
                                         sentSuc = sendEmail(emailAddr, emailPasswd);
                                     }
-                                    dismissProgressDialog();
+//                                    dismissProgressDialog();
                                     showTestResult(sentSuc);
                                 }
                             }.start();
@@ -482,6 +483,7 @@ public class TestActivity extends AppCompatActivity {
                         semaphore.release();
                     }
                     Log.w("afunx", "offset.get() " + offset.get());
+                    Log.w(TAG, "offset.get() " + offset.get());
                 }
             });
 
@@ -490,8 +492,10 @@ public class TestActivity extends AppCompatActivity {
             mBleGattClientProxy.writeCharacteristicNoResponse(gattWriteCharacteristic, bytes, 0);
             try {
                 Log.e("afunx", "notify start");
+                Log.e(TAG, "notify start");
                 isNotified = semaphore.tryAcquire(2000, TimeUnit.MILLISECONDS);
                 Log.e("afunx", "notify end " + isNotified);
+                Log.e(TAG, "notify end " + isNotified);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -578,6 +582,7 @@ public class TestActivity extends AppCompatActivity {
                 @Override
                 public void onCharacteristicNotification(byte[] msg) {
                     Log.e("afunx", "onCharacteristicNotification() msg: " + HexUtils.bytes2HexString(msg));
+                    Log.e(TAG, "onCharacteristicNotification() msg: " + HexUtils.bytes2HexString(msg));
                     // check length
                     if (offset.get() + msg.length > bytes.length) {
                         fastFail.set(true);
@@ -608,8 +613,10 @@ public class TestActivity extends AppCompatActivity {
             mBleGattClientProxy.writeCharacterisitcNoResponse2(gattWriteCharacteristic, bytes);
             try {
                 Log.e("afunx", "notify start");
+                Log.e(TAG, "notify start");
                 isNotified = semaphore.tryAcquire(4000, TimeUnit.MILLISECONDS);
                 Log.e("afunx", "notify end " + isNotified);
+                Log.e(TAG, "notify end " + isNotified);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
