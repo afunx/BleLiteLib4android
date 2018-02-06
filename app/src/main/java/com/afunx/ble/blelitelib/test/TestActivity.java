@@ -208,7 +208,7 @@ public class TestActivity extends AppCompatActivity {
                                     boolean sentSuc = isEmailSent;
                                     if (sentSuc) {
                                         sentSuc = sendEmail(emailAddr, emailPasswd);
-                                        dismissProgressDialog();
+//                                        dismissProgressDialog();
                                     }
                                     showTestResult(sentSuc);
                                 }
