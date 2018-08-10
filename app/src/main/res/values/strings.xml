@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">BleLiteLibSimple</string>
     <string name="app_version">Ble Test Tool v0.9.0-JIMU</string>
-    <string name="title_activity_scan">Ble Test Tool v0.9.0-JIMU</string>
+    <string name="title_activity_scan">Ble Test Tool v0.9.1-JIMU(esp32)</string>
     <string name="title_activity_service_list">Service List</string>
     <string name="title_activity_property_list">Property List</string>
 

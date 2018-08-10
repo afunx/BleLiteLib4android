@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">BleLiteLibSimple</string>
     <string name="app_version">Ble Test Tool v0.9.0-JIMU</string>
-    <string name="title_activity_scan">Ble测试工具v0.9.0-JIMU</string>
+    <string name="title_activity_scan">Ble测试工具v0.9.1-JIMU(esp32)</string>
     <string name="title_activity_service_list">服务列表</string>
     <string name="title_activity_property_list">属性列表</string>
 
